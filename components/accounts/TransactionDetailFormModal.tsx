@@ -10,9 +10,50 @@ interface Props {
 export default function TransactionDetailModal({ open, onClose, item }: Props) {
   if (!open || !item) return null;
 
+  const details = Array.isArray(item.details) ? item.details : [];
+
+  const getCurrencyCode = (currencyId?: number) => {
+    switch (currencyId) {
+      case 1: return "USD";
+      case 2: return "SOS";
+      case 3: return "KES";
+      default: return "";
+    }
+  };
+
+  const formatAmount = (amount?: number) => {
+    if (amount === null || amount === undefined || Number.isNaN(amount)) return "0.00";
+    return new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  const isExchange =
+    item.transactionType === "Exchange" ||
+    item.transactionType === 4 ||
+    /exchange|sarif/i.test(item.description || "");
+
+  const fromDetail = details.find((d: any) => d.entryType === 2 && !/profit|fee/i.test(d.accountName || ""));
+  const toDetail = details.find((d: any) => d.entryType === 1 && !/profit|fee/i.test(d.accountName || ""));
+  const profitDetail = details.find((d: any) => /profit|fee/i.test(d.accountName || ""));
+
+  const grossAmount = (toDetail?.amount || 0) + (profitDetail?.amount || 0);
+
+  const businessRows = isExchange && fromDetail && toDetail
+    ? [
+        { label: "You Received", accountName: fromDetail.accountName, sign: "+", amount: fromDetail.amount, currencyId: fromDetail.currencyId, color: "text-emerald-600" },
+        { label: "You Paid", accountName: toDetail.accountName, sign: "-", amount: toDetail.amount, currencyId: toDetail.currencyId, color: "text-rose-600" },
+        ...(profitDetail ? [{ label: "Your Profit", accountName: profitDetail.accountName, sign: "+", amount: profitDetail.amount, currencyId: profitDetail.currencyId, color: "text-emerald-600" }] : []),
+        { label: "Customer Received", accountName: toDetail.accountName, sign: "+", amount: toDetail.amount, currencyId: toDetail.currencyId, color: "text-emerald-600", highlight: true },
+        ...(profitDetail ? [{ label: "Gross Before Profit", accountName: toDetail.accountName, sign: "+", amount: grossAmount, currencyId: toDetail.currencyId, color: "text-[#405189]" }] : []),
+      ]
+    : [];
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-none p-4">
-      <div className="bg-white rounded-lg w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 backdrop-blur-none p-4 overflow-y-auto">
+      <div className="bg-white rounded-lg w-full max-w-2xl shadow-2xl animate-in fade-in zoom-in duration-200 my-8">
+        
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-100">
           <div className="flex items-center gap-2 text-[#405189]">
@@ -24,8 +65,8 @@ export default function TransactionDetailModal({ open, onClose, item }: Props) {
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-5">
+        {/* Scrollable Content Area */}
+        <div className="p-6 space-y-5 max-h-[60vh] overflow-y-auto">
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div className="bg-gray-50 p-3 rounded border border-gray-100">
               <p className="text-[10px] text-gray-400 uppercase font-bold">Reference No</p>
@@ -33,47 +74,66 @@ export default function TransactionDetailModal({ open, onClose, item }: Props) {
             </div>
             <div className="bg-gray-50 p-3 rounded border border-gray-100">
               <p className="text-[10px] text-gray-400 uppercase font-bold">Agency</p>
-              <p className="font-semibold text-gray-700">{item.agencyName}</p>
+              <p className="font-semibold text-gray-700">{item.agencyName || "N/A"}</p>
             </div>
           </div>
 
           <div>
             <p className="text-[10px] text-gray-400 uppercase font-bold mb-2">Description</p>
-            <p className="text-sm text-gray-600 italic bg-gray-50 p-2 rounded">{item.description}</p>
+            <p className="text-sm text-gray-600 italic bg-gray-50 p-2 rounded">{item.description || "No description"}</p>
           </div>
-          
+
           <div className="bg-[#405189]/5 p-4 rounded-lg flex justify-between items-center border border-[#405189]/10">
-             <span className="text-sm font-bold text-[#405189]">TOTAL AMOUNT</span>
-             <span className="text-lg font-bold text-[#405189] flex items-center">
-               <DollarSign size={18} /> {item.totalAmount?.toFixed(2)}
-             </span>
+            <span className="text-sm font-bold text-[#405189]">TOTAL AMOUNT</span>
+            <span className="text-lg font-bold text-[#405189] flex items-center gap-1">
+              <DollarSign size={18} />
+              {formatAmount(item.totalAmount)} {getCurrencyCode(item.currencyId)}
+            </span>
           </div>
-          
+
           <div className="mt-4">
             <p className="text-xs font-bold uppercase text-gray-400 mb-3 flex items-center gap-2">
-              <ArrowRightLeft size={14} /> Breakdown
+              <ArrowRightLeft size={14} /> Business View
             </p>
-            <div className="space-y-1">
-              {item.details?.map((d: any, i: number) => (
-                <div key={i} className="flex justify-between items-center text-sm py-2 px-3 hover:bg-gray-50 rounded transition-colors">
-                  <div className="flex items-center gap-2">
-                    <CreditCard size={14} className="text-gray-400" />
-                    <span className="text-gray-700 font-medium">{d.accountName}</span>
+            <div className="space-y-2">
+              {businessRows.length > 0 ? (
+                businessRows.map((row, i) => (
+                  <div key={i} className={`flex justify-between items-center text-sm py-2 px-3 rounded ${row.highlight ? "bg-gray-50 border border-gray-100" : "hover:bg-gray-50"}`}>
+                    <div className="flex items-center gap-2">
+                      <CreditCard size={14} className="text-gray-400" />
+                      <div>
+                        <div className="text-gray-700 font-medium">{row.label}</div>
+                        <div className="text-[11px] text-gray-400">{row.accountName}</div>
+                      </div>
+                    </div>
+                    <span className={`font-mono ${row.color}`}>
+                      {row.sign} {formatAmount(row.amount)}
+                      <span className="text-[10px] text-gray-400 ml-1">{getCurrencyCode(row.currencyId)}</span>
+                    </span>
                   </div>
-                  <span className={`font-mono ${d.entryType === 1 ? "text-emerald-600" : "text-rose-600"}`}>
-                    {d.entryType === 1 ? "+" : "-"} {d.amount?.toFixed(2)} 
-                    <span className="text-[10px] text-gray-400 ml-1">USD</span>
-                  </span>
-                </div>
-              ))}
+                ))
+              ) : (
+                item.details?.map((d: any, i: number) => (
+                  <div key={i} className="flex justify-between items-center text-sm py-2 px-3 hover:bg-gray-50 rounded">
+                    <div className="flex items-center gap-2">
+                      <CreditCard size={14} className="text-gray-400" />
+                      <span className="text-gray-700 font-medium">{d.accountName}</span>
+                    </div>
+                    <span className={`font-mono ${d.entryType === 1 ? "text-emerald-600" : "text-rose-600"}`}>
+                      {d.entryType === 1 ? "+" : "-"} {formatAmount(d.amount)}
+                      <span className="text-[10px] text-gray-400 ml-1">{getCurrencyCode(d.currencyId)}</span>
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-100">
-          <button 
-            onClick={onClose} 
+        <div className="p-4 border-t border-gray-100 bg-white">
+          <button
+            onClick={onClose}
             className="w-full bg-[#405189] text-white py-2.5 rounded shadow-lg hover:bg-[#364574] transition-all font-medium text-sm"
           >
             Close Window
