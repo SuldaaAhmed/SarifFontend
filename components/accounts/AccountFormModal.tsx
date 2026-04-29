@@ -5,6 +5,9 @@ import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import { X, Save } from "lucide-react";
 
+/* ================================
+   MODEL
+================================ */
 export interface AccountFormData {
     id : string;
     name: string;
@@ -52,10 +55,10 @@ export default function AccountFormModal({
         }
     }, [mode, initialData, open]);
 
-    const update = (k: keyof AccountFormData, v: string | number) => {
-        setForm((p) => ({ ...p, [k]: v }));
-        if (errors[k]) setErrors((prev) => ({ ...prev, [k]: "" }));
-    };
+  const update = (k: keyof AccountFormData, v: string | number) => {
+    setForm((p) => ({ ...p, [k]: v }));
+    if (errors[k]) setErrors((prev) => ({ ...prev, [k]: "" }));
+  };
 
     const validate = () => {
         const e: typeof errors = {};
@@ -66,18 +69,21 @@ export default function AccountFormModal({
 
         // ❌ ReferenceId validation waa laga saaray (optional)
 
-        setErrors(e);
-        return !Object.keys(e).length;
-    };
+    setErrors(e);
+    return !Object.keys(e).length;
+  };
 
-    const handleEsc = useCallback((e: KeyboardEvent) => {
-        if (e.key === "Escape") onClose();
-    }, [onClose]);
+  const handleEsc = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    },
+    [onClose]
+  );
 
-    useEffect(() => {
-        if (open) window.addEventListener("keydown", handleEsc);
-        return () => window.removeEventListener("keydown", handleEsc);
-    }, [open, handleEsc]);
+  useEffect(() => {
+    if (open) window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [open, handleEsc]);
 
     const submit = async () => {
         console.log("FORM DATA:", form);
@@ -95,7 +101,7 @@ export default function AccountFormModal({
         }
     };
 
-    if (!open) return null;
+  if (!open) return null;
 
     const selectClassName =
         "w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-[#090044] focus:ring-2 focus:ring-[#00bf63] outline-none";
