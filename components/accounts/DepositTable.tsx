@@ -32,6 +32,10 @@ interface DepositDto {
   currencyCode: string;
   toAccountName: string;
   openedAt: string;
+  balance: number;
+  withdrawAmount: number;
+  totalDeposited: number;
+
 }
 
 export default function DepositTable() {
@@ -201,135 +205,178 @@ export default function DepositTable() {
             {/* ══════════════════════════════════════════
                 DESKTOP TABLE  (hidden on mobile)
             ══════════════════════════════════════════ */}
-            <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-[#f3f6f9] text-[#878a99] text-[13px] font-bold uppercase border-b border-gray-200">
-                  <tr>
-                    <th className="p-3">Customer Name</th>
-                    <th className="p-3">Account</th>
-                    <th className="p-3">Balance</th>
-                    <th className="p-3">Code</th>
-                    <th className="p-3">Status</th>
-                    <th className="p-3">Created At</th>
-                    {/* <th className="p-3 text-center">Action</th> */}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {data.map((item) => {
-                    const status = getDepositStatusBadge(item.status);
-                    return (
-                      <tr key={item.id} className="text-[13px] hover:bg-gray-50">
-                        <td className="p-3">{item.customerName}</td>
-                        <td className="p-3">{item.accountName}</td>
-                        <td>{formatMoney(item.amount, item.currencyId)}</td>
-                        <td className="p-3 text-[#0ab39c] font-bold">{item.currencyCode}</td>
-                        <td className="p-3">
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${status.class}`}>
-                            {status.text}
-                          </span>
-                        </td>
-                        <td className="p-3">
-                          {new Date(item.openedAt).toLocaleDateString("en-US", {
-                            month: "2-digit",
-                            day: "2-digit",
-                            year: "2-digit",
-                          })}
-                        </td>
-                        {/* <td className="p-3 text-center">
-                          <div className="flex gap-2 justify-center">
-                            <button
-                              onClick={() => handleEdit(item)}
-                              className="bg-[#299cdb] text-white px-3 py-1 rounded text-[11px]"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => {
-                                setSelectedItem(item);
-                                setOpenDelete(true);
-                              }}
-                              className="bg-[#f06548] text-white px-3 py-1 rounded text-[11px]"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </td> */}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+          {/* Desktop Table */}
+<div className="hidden md:block overflow-x-auto">
+  <table className="w-full text-left border-collapse">
+    <thead className="bg-[#f3f6f9] text-[#878a99] text-[13px] font-bold uppercase border-b border-gray-200">
+      <tr>
+        <th className="p-3">Customer Name</th>
+        <th className="p-3">Account</th>
+        <th className="p-3">Balance</th>
+        <th className="p-3">Withdraw</th>
+        <th className="p-3">Deposited</th>
+        <th className="p-3">Code</th>
+        <th className="p-3">Status</th>
+        <th className="p-3">Created At</th>
+      </tr>
+    </thead>
+
+    <tbody className="divide-y divide-gray-100">
+      {data.map((item) => {
+        const status = getDepositStatusBadge(item.status);
+
+        return (
+          <tr
+            key={item.id}
+            className="text-[13px] hover:bg-gray-50"
+          >
+            <td className="p-3 font-medium text-[#495057]">
+              {item.customerName || "-"}
+            </td>
+
+            <td className="p-3 text-gray-600">
+              {item.accountName || "-"}
+            </td>
+
+            <td className="p-3 font-bold text-[#0ab39c]">
+              {formatMoney(item.balance ?? 0, item.currencyId)}
+            </td>
+
+            <td className="p-3 font-medium text-[#f06548]">
+              {formatMoney(item.withdrawAmount ?? 0, item.currencyId)}
+            </td>
+
+            <td className="p-3 font-medium text-[#299cdb]">
+              {formatMoney(item.totalDeposited ?? 0, item.currencyId)}
+            </td>
+
+            <td className="p-3 text-[#0ab39c] font-bold">
+              {item.currencyCode || "-"}
+            </td>
+
+            <td className="p-3">
+              <span
+                className={`px-2 py-1 rounded text-xs font-medium ${status.class}`}
+              >
+                {status.text}
+              </span>
+            </td>
+
+            <td className="p-3 text-gray-500">
+              {item.openedAt
+                ? new Date(item.openedAt).toLocaleDateString("en-US", {
+                    month: "2-digit",
+                    day: "2-digit",
+                    year: "2-digit",
+                  })
+                : "-"}
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+</div>
 
             {/* ══════════════════════════════════════════
                 MOBILE CARDS  (shown only on mobile)
             ══════════════════════════════════════════ */}
-            <div className="block md:hidden divide-y divide-gray-100">
-              {data.map((item) => {
-                const status = getDepositStatusBadge(item.status);
-                return (
-                  <div key={item.id} className="px-4 py-3 hover:bg-gray-50">
+          {/* Mobile View */}
+<div className="block md:hidden divide-y divide-gray-100">
+  {data.map((item) => {
+    const status = getDepositStatusBadge(item.status);
 
-                    {/* Row 1: customer name (left) + status badge (right) */}
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="text-[13px] font-semibold text-[#495057] truncate">
-                        {item.customerName}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap ${status.class}`}>
-                        {status.text}
-                      </span>
-                    </div>
+    return (
+      <div
+        key={item.id}
+        className="px-4 py-4 hover:bg-gray-50"
+      >
+        {/* Customer and status */}
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <span className="text-[13px] font-semibold text-[#495057] truncate">
+            {item.customerName || "-"}
+          </span>
 
-                    {/* Row 2: account name (left) + amount+code (right) */}
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="text-[12px] text-gray-400 truncate">{item.accountName}</span>
-                      <span className="flex items-center gap-1 shrink-0">
-                        <span className="text-gray-400 text-[11px] font-medium">
-                          {getCurrencySymbol(item.currencyId)}
-                        </span>
-                        <span className="text-[14px] font-bold text-gray-800">
-                          {new Intl.NumberFormat("en-US", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          }).format(item.amount || 0)}
-                        </span>
-                        <span className="text-[#0ab39c] font-bold text-[11px]">
-                          {item.currencyCode}
-                        </span>
-                      </span>
-                    </div>
+          <span
+            className={`px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap ${status.class}`}
+          >
+            {status.text}
+          </span>
+        </div>
 
-                    {/* Row 3: date (left) + compact action buttons (right) */}
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[11px] text-gray-400">
-                        {new Date(item.openedAt).toLocaleDateString("en-US", {
-                          month: "2-digit",
-                          day: "2-digit",
-                          year: "2-digit",
-                        })}
-                      </span>
-                      {/* <div className="flex gap-1.5">
-                        <button
-                          onClick={() => handleEdit(item)}
-                          className="bg-[#299cdb] text-white px-2.5 py-1 rounded text-[11px] leading-none"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedItem(item);
-                            setOpenDelete(true);
-                          }}
-                          className="bg-[#f06548] text-white px-2.5 py-1 rounded text-[11px] leading-none"
-                        >
-                          Remove
-                        </button>
-                      </div> */}
-                    </div>
-                  </div>
-                );
-              })}
+        {/* Account and currency */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <span className="text-[12px] text-gray-400 truncate">
+            {item.accountName || "-"}
+          </span>
+
+          <span className="text-[#0ab39c] font-bold text-[11px]">
+            {item.currencyCode || "-"}
+          </span>
+        </div>
+
+        {/* Financial summary */}
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="bg-[#f3f6f9] rounded p-2">
+            <div className="text-[10px] text-gray-400 mb-1">
+              Deposited
             </div>
+
+            <div className="text-[12px] font-bold text-[#299cdb] break-all">
+              {formatMoney(
+                item.totalDeposited ?? 0,
+                item.currencyId
+              )}
+            </div>
+          </div>
+
+          <div className="bg-[#f3f6f9] rounded p-2">
+            <div className="text-[10px] text-gray-400 mb-1">
+              Withdrawn
+            </div>
+
+            <div className="text-[12px] font-bold text-[#f06548] break-all">
+              {formatMoney(
+                item.withdrawAmount ?? 0,
+                item.currencyId
+              )}
+            </div>
+          </div>
+
+          <div className="bg-[#f3f6f9] rounded p-2">
+            <div className="text-[10px] text-gray-400 mb-1">
+              Balance
+            </div>
+
+            <div className="text-[12px] font-bold text-[#0ab39c] break-all">
+              {formatMoney(
+                item.balance ?? 0,
+                item.currencyId
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Date */}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[11px] text-gray-400">
+            {item.openedAt
+              ? new Date(item.openedAt).toLocaleDateString("en-US", {
+                  month: "2-digit",
+                  day: "2-digit",
+                  year: "2-digit",
+                })
+              : "-"}
+          </span>
+
+          <span className="text-[11px] text-gray-400">
+            {item.depositNo || ""}
+          </span>
+        </div>
+      </div>
+    );
+  })}
+</div>
           </div>
 
           {/* PAGINATION */}

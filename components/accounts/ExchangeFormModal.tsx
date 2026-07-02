@@ -17,6 +17,7 @@ export interface CreateExchangeRequest {
     fromAccountId: string;
     toAccountId: string;
     fromAmount: number;
+    customerRate: number;
   };
 }
 
@@ -30,6 +31,7 @@ const emptyForm: CreateExchangeRequest = {
     fromAccountId: "",
     toAccountId: "",
     fromAmount: 0,
+    customerRate: 0,
   },
 };
 
@@ -66,6 +68,8 @@ export default function ExchangeFormModal({ open, onClose, onSubmit }: any) {
 
     if (form.exchange.fromAccountId === form.exchange.toAccountId)
       e.dest = "Same account not allowed";
+    if (!form.exchange.customerRate || form.exchange.customerRate <= 0)
+  e.customerRate = "Customer rate required";
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -130,17 +134,66 @@ export default function ExchangeFormModal({ open, onClose, onSubmit }: any) {
           </div>
         </div>
 
-        {/* AMOUNT */}
-        <div className="mt-3">
-          <Label>Amount</Label>
-          <Input
-            type="number"
-            onChange={(e: any) =>
-              updateExchange("fromAmount", Number(e.target.value))
-            }
-          />
-          {errors.amount && <p className="text-red-500 text-xs">{errors.amount}</p>}
-        </div>
+{/* AMOUNT AND CUSTOMER RATE */}
+<div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+  {/* AMOUNT */}
+  <div>
+    <Label>Amount</Label>
+
+    <Input
+      type="number"
+      step={0.01}
+      value={
+        form.exchange.fromAmount === 0
+          ? ""
+          : form.exchange.fromAmount
+      }
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+
+        updateExchange(
+          "fromAmount",
+          value === "" ? 0 : Number(value)
+        );
+      }}
+    />
+
+    {errors.amount && (
+      <p className="mt-1 text-xs text-red-500">
+        {errors.amount}
+      </p>
+    )}
+  </div>
+
+  {/* CUSTOMER RATE */}
+  <div>
+    <Label>Enter Rate</Label>
+
+    <Input
+      type="number" placeholder="129.200"
+      step={0.01}
+      value={
+        form.exchange.customerRate === 0
+          ? ""
+          : form.exchange.customerRate
+      }
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+
+        updateExchange(
+          "customerRate",
+          value === "" ? 0 : Number(value)
+        );
+      }}
+    />
+
+    {errors.customerRate && (
+      <p className="mt-1 text-xs text-red-500">
+        {errors.customerRate}
+      </p>
+    )}
+  </div>
+</div>
 
         {/* SUBMIT */}
         <div className="flex gap-3 mt-5">

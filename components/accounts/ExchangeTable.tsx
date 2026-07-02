@@ -169,6 +169,7 @@ export default function ExchangeTable() {
                     <th className="p-3">To</th>
                     <th className="p-3">Net</th>
                     <th className="p-3">Profit</th>
+                    <th className="p-3">USD</th>
                     <th className="p-3">CreateAt</th>
                     <th className="p-3 text-center">Action</th>
                   </tr>
@@ -180,7 +181,15 @@ export default function ExchangeTable() {
                       <td className="p-3">{formatMoney(item.fromAmount, item.fromCurrencyId)}</td>
                       <td className="p-3 text-[#0ab39c] font-bold">{formatMoney(item.toAmount, item.toCurrencyId)}</td>
                       <td className="p-3 text-[#0ab39c] font-bold">{formatMoney(item.netAmount, item.toCurrencyId)}</td>
-                      <td className="p-3">{formatMoney((item.profit || 0) + (item.fee || 0), 1)}</td>
+                    {/* Profit, symbol-ka lacagta market-ka */}
+<td className="p-3">
+  {formatMoney(item.fee || 0, item.toCurrencyId)}
+</td>
+
+{/* USD, mar walba dollar */}
+<td className="p-3">
+  {formatMoney(item.profit || 0, 1)}
+</td>
                       <td className="p-3">
                         {new Date(item.createdAt).toLocaleDateString("en-US", {
                           month: "2-digit",
