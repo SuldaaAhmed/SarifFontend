@@ -53,7 +53,7 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
       try {
         const [menuRes, permRes] = await Promise.all([
           SetupService.getMenusSingle(),
-          SetupService.getPermissions() 
+          SetupService.getPermission() 
         ]);
         
         const menuItems = menuRes.data?.data || [];

@@ -117,6 +117,26 @@ update(id: string, data: any) {
     return api.delete(`/Auth/delete-member/${id}`);
   },
 
+assignRole(userId: string, roleName: string) {
+  return api.post(`/Users/assign-role/${userId}`, {
+    roleName,
+  });
+},
+
+
+    // Get all users with their roles
+  getAllWithRoles(
+    page: number = 1,
+    pageSize: number = 10
+  ) {
+    return api.get("/Users/with-roles", {
+      params: {
+        page,
+        pageSize,
+      },
+    });
+  },
+
 
 
 
