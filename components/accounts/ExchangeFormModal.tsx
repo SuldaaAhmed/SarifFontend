@@ -7,9 +7,6 @@ import Label from "@/components/form/Label";
 import { X } from "lucide-react";
 import { AccountService } from "@/lib/account";
 
-/* ================================
-   CLEAN MODEL (NO CURRENCY)
-================================ */
 export interface CreateExchangeRequest {
   transactionType: number;
   description: string;
@@ -21,9 +18,6 @@ export interface CreateExchangeRequest {
   };
 }
 
-/* ================================
-   EMPTY FORM
-================================ */
 const emptyForm: CreateExchangeRequest = {
   transactionType: 4,
   description: "",
@@ -40,9 +34,6 @@ export default function ExchangeFormModal({ open, onClose, onSubmit }: any) {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [errors, setErrors] = useState<any>({});
 
-  /* ================================
-     LOAD ACCOUNTS ONLY
-  ================================= */
   useEffect(() => {
     if (!open) return;
 
@@ -51,34 +42,41 @@ export default function ExchangeFormModal({ open, onClose, onSubmit }: any) {
     });
   }, [open]);
 
-  /* ================================
-     VALIDATION
-  ================================= */
   const validate = () => {
     const e: any = {};
 
-    if (!form.exchange.fromAmount || form.exchange.fromAmount <= 0)
+    if (!form.exchange.fromAmount || form.exchange.fromAmount <= 0) {
       e.amount = "Amount required";
+    }
 
-    if (!form.exchange.fromAccountId)
+    if (!form.exchange.fromAccountId) {
       e.source = "Select source account";
+    }
 
-    if (!form.exchange.toAccountId)
+    if (!form.exchange.toAccountId) {
       e.dest = "Select destination account";
+    }
 
-    if (form.exchange.fromAccountId === form.exchange.toAccountId)
+    if (
+      form.exchange.fromAccountId &&
+      form.exchange.toAccountId &&
+      form.exchange.fromAccountId === form.exchange.toAccountId
+    ) {
       e.dest = "Same account not allowed";
-    if (!form.exchange.customerRate || form.exchange.customerRate <= 0)
-  e.customerRate = "Customer rate required";
+    }
+
+    if (!form.exchange.customerRate || form.exchange.customerRate <= 0) {
+      e.customerRate = "Customer rate required";
+    }
 
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  /* ================================
-     UPDATE
-  ================================= */
-  const updateExchange = (key: any, value: any) => {
+  const updateExchange = (
+    key: keyof CreateExchangeRequest["exchange"],
+    value: string | number
+  ) => {
     setForm((p) => ({
       ...p,
       exchange: {
@@ -88,9 +86,35 @@ export default function ExchangeFormModal({ open, onClose, onSubmit }: any) {
     }));
   };
 
-  /* ================================
-     OPTIONS
-  ================================= */
+  const handleSubmit = () => {
+    if (!validate()) return;
+
+    const fromAccount = accounts.find(
+      (a) => a.id === form.exchange.fromAccountId
+    );
+
+    const fromAccountName = fromAccount?.name?.toLowerCase() || "";
+
+    const isKenyanAccount =
+      fromAccountName.includes("main cash kes") ||
+      fromAccountName.includes("kenya") ||
+      fromAccountName.includes("KES");
+      
+      
+
+    const submitForm: CreateExchangeRequest = {
+      ...form,
+      exchange: {
+        ...form.exchange,
+        customerRate: isKenyanAccount
+          ? 1 / form.exchange.customerRate
+          : form.exchange.customerRate,
+      },
+    };
+
+    onSubmit(submitForm);
+  };
+
   const accOpt = accounts.map((a) => ({
     value: a.id,
     label: a.name,
@@ -104,7 +128,6 @@ export default function ExchangeFormModal({ open, onClose, onSubmit }: any) {
         <div className="relative flex items-center justify-center mb-3">
           <h3 className="font-bold text-lg">Exchange</h3>
 
-          {/* Close button stays right */}
           <button
             onClick={onClose}
             className="absolute right-0 p-1 hover:bg-gray-100 rounded-full"
@@ -113,89 +136,94 @@ export default function ExchangeFormModal({ open, onClose, onSubmit }: any) {
           </button>
         </div>
 
-        {/* ACCOUNTS */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Exchange From</Label>
             <Select
-              onChange={(v: any) => updateExchange("fromAccountId", v.value)}
+              value={
+                accOpt.find((x) => x.value === form.exchange.fromAccountId) ||
+                null
+              }
+              onChange={(v: any) =>
+                updateExchange("fromAccountId", v?.value || "")
+              }
               options={accOpt}
             />
-            {errors.source && <p className="text-red-500 text-xs">{errors.source}</p>}
+            {errors.source && (
+              <p className="text-red-500 text-xs">{errors.source}</p>
+            )}
           </div>
 
           <div>
             <Label>Exchange To</Label>
             <Select
-              onChange={(v: any) => updateExchange("toAccountId", v.value)}
+              value={
+                accOpt.find((x) => x.value === form.exchange.toAccountId) ||
+                null
+              }
+              onChange={(v: any) =>
+                updateExchange("toAccountId", v?.value || "")
+              }
               options={accOpt}
             />
-            {errors.dest && <p className="text-red-500 text-xs">{errors.dest}</p>}
+            {errors.dest && (
+              <p className="text-red-500 text-xs">{errors.dest}</p>
+            )}
           </div>
         </div>
 
-{/* AMOUNT AND CUSTOMER RATE */}
-<div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-  {/* AMOUNT */}
-  <div>
-    <Label>Amount</Label>
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div>
+            <Label>Amount</Label>
 
-    <Input
-      type="number"
-      step={0.01}
-      value={
-        form.exchange.fromAmount === 0
-          ? ""
-          : form.exchange.fromAmount
-      }
-      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
+            <Input
+              type="number"
+              step={0.01}
+              value={
+                form.exchange.fromAmount === 0
+                  ? ""
+                  : form.exchange.fromAmount
+              }
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const value = e.target.value;
+                updateExchange("fromAmount", value === "" ? 0 : Number(value));
+              }}
+            />
 
-        updateExchange(
-          "fromAmount",
-          value === "" ? 0 : Number(value)
-        );
-      }}
-    />
+            {errors.amount && (
+              <p className="mt-1 text-xs text-red-500">{errors.amount}</p>
+            )}
+          </div>
 
-    {errors.amount && (
-      <p className="mt-1 text-xs text-red-500">
-        {errors.amount}
-      </p>
-    )}
-  </div>
+          <div>
+            <Label>Enter Rate</Label>
 
-  {/* CUSTOMER RATE */}
-  <div>
-    <Label>Enter Rate</Label>
+            <Input
+              type="number"
+              placeholder="129.200"
+              step={0.01}
+              value={
+                form.exchange.customerRate === 0
+                  ? ""
+                  : form.exchange.customerRate
+              }
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const value = e.target.value;
+                updateExchange(
+                  "customerRate",
+                  value === "" ? 0 : Number(value)
+                );
+              }}
+            />
 
-    <Input
-      type="number" placeholder="129.200"
-      step={0.01}
-      value={
-        form.exchange.customerRate === 0
-          ? ""
-          : form.exchange.customerRate
-      }
-      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
+            {errors.customerRate && (
+              <p className="mt-1 text-xs text-red-500">
+                {errors.customerRate}
+              </p>
+            )}
+          </div>
+        </div>
 
-        updateExchange(
-          "customerRate",
-          value === "" ? 0 : Number(value)
-        );
-      }}
-    />
-
-    {errors.customerRate && (
-      <p className="mt-1 text-xs text-red-500">
-        {errors.customerRate}
-      </p>
-    )}
-  </div>
-</div>
-
-        {/* SUBMIT */}
         <div className="flex gap-3 mt-5">
           <button
             onClick={onClose}
@@ -203,14 +231,14 @@ export default function ExchangeFormModal({ open, onClose, onSubmit }: any) {
           >
             Cancel
           </button>
+
           <button
-            onClick={() => validate() && onSubmit(form)}
+            onClick={handleSubmit}
             className="w-1/2 bg-[#405189] text-white py-2.5 rounded text-[13px] hover:bg-[#364574]"
           >
             Save
           </button>
         </div>
-
       </div>
     </div>
   );

@@ -677,7 +677,7 @@ export default function HelpSupportModal({
 
                                 
                                     {/* Problem Title - full width */}
-                                    <div className="sm:col-span-2">
+                                    {/* <div className="sm:col-span-2">
                                         <FieldLabel htmlFor="screenshot" required>
                                             Upload Screenshot
                                         </FieldLabel>
@@ -690,8 +690,8 @@ export default function HelpSupportModal({
                                             className={getInputClasses(!!errors.screenshot)}
                                             {...register("screenshot")}
                                         />
-                                        {/* <FieldError message={errors.screenshot?.message} /> */}
-                                    </div>
+                                        
+                                    </div> */}
 
                                     {/* Problem Description - full width */}
                                     <div className="sm:col-span-2">

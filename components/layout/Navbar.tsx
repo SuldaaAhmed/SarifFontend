@@ -19,7 +19,7 @@ import {
   CheckCheck,
   Zap,
 } from "lucide-react";
-import { useTheme } from "next-themes";
+// import { useTheme } from "next-themes";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigation } from "@/context/NavigationContext";
 import HelpSupportModal from "@/components/ui/Model/HelpSupportModal";
@@ -741,29 +741,29 @@ function ProfileMenu({
 
 // ─── DarkModeToggle ───────────────────────────────────────────────────────────
 
-function DarkModeToggle() {
-  const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+// function DarkModeToggle() {
+//   const { resolvedTheme, setTheme } = useTheme();
+//   const [mounted, setMounted] = useState(false);
 
-  // SSR/client mismatch ka hortag: theme-ka la xaqiijin karo kaliya client-ka
-  useEffect(() => setMounted(true), []);
+//   // SSR/client mismatch ka hortag: theme-ka la xaqiijin karo kaliya client-ka
+//   useEffect(() => setMounted(true), []);
 
-  const isDark = resolvedTheme === "dark";
+//   const isDark = resolvedTheme === "dark";
 
-  return (
-    <IconBtn
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-    >
-      {/* Hydration mismatch ka hortag: mounted ka hor placeholder icon */}
-      {mounted ? (
-        isDark ? <Sun size={17} /> : <Moon size={17} />
-      ) : (
-        <Moon size={17} />
-      )}
-    </IconBtn>
-  );
-}
+//   return (
+//     <IconBtn
+//       onClick={() => setTheme(isDark ? "light" : "dark")}
+//       label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+//     >
+//       {/* Hydration mismatch ka hortag: mounted ka hor placeholder icon */}
+//       {mounted ? (
+//         isDark ? <Sun size={17} /> : <Moon size={17} />
+//       ) : (
+//         <Moon size={17} />
+//       )}
+//     </IconBtn>
+//   );
+// }
 
 // ─── Small primitives ─────────────────────────────────────────────────────────
 
@@ -894,7 +894,7 @@ export default function Navbar({
         </IconBtn>
 
         {/* Dark mode */}
-        <DarkModeToggle />
+        {/* <DarkModeToggle /> */}
 
         {/* Notifications */}
         <NotificationBell

@@ -21,6 +21,7 @@ interface AgencyDto {
 
 export default function AgencyTable() {
   const { hasPermission } = usePermission();
+  // alert(hasPermission("EDIT.AGENCY"));
   const [agencies, setAgencies] = useState<AgencyDto[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -116,9 +117,11 @@ export default function AgencyTable() {
     return [...new Set(range)];
   };
 
-  const canAdd = hasPermission("CREATE.USER");
-  const canEdit = hasPermission("EDIT.USER");
-  const canDelete = hasPermission("DELETE.USER");
+  const canAdd = hasPermission("CREATE.AGENCY");
+  const canEdit = hasPermission("EDIT.AGENCY");
+  const canDelete = hasPermission("DELETE.AGENCY");
+  // alert(canAdd);
+
 
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-3 sm:p-4 md:p-6 font-sans">

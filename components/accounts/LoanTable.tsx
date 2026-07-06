@@ -211,10 +211,12 @@ export default function LoanTable() {
         <div className="bg-white dark:bg-gray-800 border border-gray-200 rounded shadow-sm overflow-hidden">
           <div className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
             <button
-              onClick={() => { setIsEdit(false); setOpenForm(true); }}
-              className="w-full md:w-auto bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px] hover:bg-[#089a86]"
+              onClick={() => {
+                toast.error("ka soo xaray customer page");
+              }}
+              className="w-full md:w-auto bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px] cursor-not-allowed"
             >
-              + Add Loan
+              + Add Deposit
             </button>
 
             <div className="w-full md:w-auto flex flex-col sm:flex-row items-center gap-2">

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { GoogleLogin } from "@react-oauth/google";
 import { AuthService } from "@/lib/auth";
-import { Mail, Lock, LogIn, ArrowRight, ShieldCheck } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
 
 type Role = "Administrator" | "Manager" | "Employee" | "User";
@@ -13,36 +13,48 @@ type Role = "Administrator" | "Manager" | "Employee" | "User";
 export default function LoginPage() {
   const router = useRouter();
   const { login, user, loading: authLoading } = useAuth();
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // --- FIX: Logic to handle redirection only when user is logged in ---
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const usernameRegex = /^[a-zA-Z0-9._]{3,30}$/;
+
+  // Single redirect path for every auth method — Google login no longer
+  // hard-reloads the page separately, it just triggers this same effect.
   useEffect(() => {
     if (!authLoading && user) {
       const role = user.role as Role;
-      if (role === "User") {
-        router.push("/");
-      } else {
-        router.push("/dashboard");
-      }
+      router.push(role === "User" ? "/" : "/dashboard");
     }
   }, [user, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
 
+    // CILAD LA SAXAY: validation-kani wuxuu ku qornaa component body-ga —
+    // render kasta ayuu socon jiray, render-ka 1aad `return;` ayuu samayn
+    // jiray, component-kuna wuxuu soo celin jiray `undefined` -> crash
+    // ("Nothing was returned from render") + Rules of Hooks jebin.
+    // Meeshiisa saxda ah waa halkan: submit marka la gujiyo KALIYA.
+    const value = email.trim();
+    if (!emailRegex.test(value) && !usernameRegex.test(value)) {
+      toast.error("Please enter a valid email address or username.");
+      return;
+    }
+
+    setSubmitting(true);
     try {
-      const success = await login(email, password);
+      const success = await login(value, password);
       if (success) {
-        toast.success("Welcome back!");
+        toast.success("Welcome back.");
       } else {
-        toast.error("Invalid email or password");
+        toast.error("Invalid email or password.");
       }
     } catch (err) {
-      toast.error("An error occurred during login");
+      toast.error("Something went wrong. Try again.");
     } finally {
       setSubmitting(false);
     }
@@ -58,96 +70,199 @@ export default function LoginPage() {
       if (res.data?.success) {
         const token = res.data?.data?.token;
         if (token) localStorage.setItem("token", token);
-        
-        toast.success("Google Sign-in successful");
-        window.location.href = "/"; // Force refresh to update context
+        toast.success("Signed in with Google.");
+        // No hard reload — the useEffect above handles redirect once
+        // AuthContext picks up the new session on its own refresh cycle.
+      } else {
+        toast.error("Google sign-in failed.");
       }
     } catch (err) {
-      toast.error("Google authentication failed");
+      toast.error("Google authentication failed.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const inputClass = "w-full pl-11 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-1 focus:border-[#00bf63] focus:ring-[#00bf63] transition-all bg-white";
-
   return (
-    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#00bf63]/10 via-white to-white px-6">
-      <div className="w-full max-w-md">
-        
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#00bf63] text-white shadow-lg shadow-[#00bf63]/20 mb-4">
-            <ShieldCheck size={32} />
+    <div className="min-h-screen w-full flex bg-[#F7F8F5] font-[var(--font-body)]">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap');
+        :root {
+          --font-display: 'Fraunces', serif;
+          --font-body: 'Inter', sans-serif;
+        }
+        @keyframes rotate-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        @keyframes fade-up {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fade-up 0.5s ease-out both; }
+        @media (prefers-reduced-motion: reduce) {
+          .rotate-ring { animation: none !important; }
+          .fade-up { animation: none !important; }
+        }
+      `}</style>
+
+      {/* Left panel — brand / signature */}
+      <aside className="hidden lg:flex lg:w-[42%] relative overflow-hidden bg-[#109489] flex-col justify-between px-14 py-12">
+        {/* signature element: slow-rotating concentric access rings */}
+        <div
+          className="rotate-ring pointer-events-none absolute -right-40 top-1/2 -translate-y-1/2 h-[560px] w-[560px] rounded-full"
+          style={{
+            animation: "rotate-slow 60s linear infinite",
+            background:
+              "repeating-radial-gradient(circle at center, transparent 0, transparent 38px, rgba(255,255,255,0.08) 39px, rgba(255,255,255,0.08) 40px)",
+          }}
+        />
+        <div
+          className="pointer-events-none absolute -right-40 top-1/2 -translate-y-1/2 h-[560px] w-[560px] rounded-full border border-white/[0.06]"
+        />
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 rounded-md bg-white/20 flex items-center justify-center">
+              <span className="text-white font-bold text-sm" style={{ fontFamily: "var(--font-display)" }}>A</span>
+            </div>
+            <span className="text-white/90 text-sm font-semibold tracking-wide uppercase">Access Portal</span>
           </div>
-          <h1 className="text-3xl font-extrabold text-[#090044]">Login</h1>
-          <p className="text-gray-500 mt-2">Access your account securely</p>
         </div>
 
-        <div className="bg-white p-8 rounded-3xl shadow-2xl border border-gray-100">
-          <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="relative z-10 max-w-sm">
+          {/* CILAD LA SAXAY: text-[#109489] on bg-[#109489] = qoraal aan muuqan */}
+          <p className="text-white/60 text-xs font-semibold tracking-[0.2em] uppercase mb-4">Secure sign-in</p>
+          <h1
+            className="text-white text-[2.75rem] leading-[1.1] mb-5"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}
+          >
+            Your workspace,<br />one verified step away.
+          </h1>
+          <p className="text-white/50 text-[15px] leading-relaxed">
+            Every sign-in is checked against your role and permissions before you land on your dashboard.
+          </p>
+        </div>
+
+        <div className="relative z-10 flex items-center gap-2 text-white/35 text-xs">
+          <span>© {new Date().getFullYear()}</span>
+          <span className="h-1 w-1 rounded-full bg-white/20" />
+          <span>All access is logged</span>
+        </div>
+      </aside>
+
+      {/* Right panel — form */}
+      <main className="flex-1 flex items-center justify-center px-6 py-12">
+        <div className="w-full max-w-[400px] fade-up">
+          {/* mobile-only brand mark */}
+          <div className="lg:hidden flex items-center gap-2.5 mb-10">
+            <div className="h-8 w-8 rounded-md bg-[#109489] flex items-center justify-center">
+              {/* CILAD LA SAXAY: text-[#109489] on bg-[#109489] = xaraf aan muuqan */}
+              <span className="text-white font-bold text-sm" style={{ fontFamily: "var(--font-display)" }}>A</span>
+            </div>
+            <span className="text-[#109489] text-sm font-semibold tracking-wide uppercase">Access Portal</span>
+          </div>
+
+          <h2
+            className="text-[#109489] text-[2rem] leading-tight mb-2"
+            style={{ fontFamily: "var(--font-display)", fontWeight: 500 }}
+          >
+            Sign in
+          </h2>
+          <p className="text-gray-500 text-[15px] mb-9">Enter your details to continue.</p>
+
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div>
-              <label className="text-xs font-bold text-[#090044] uppercase tracking-wider ml-1">Email Address</label>
-              <div className="relative mt-1">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <label htmlFor="email" className="text-xs font-semibold text-[#004414] uppercase tracking-wider">
+                Email address
+              </label>
+              <div className="relative mt-1.5">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={17} strokeWidth={1.75} />
                 <input
-                  type="email"
+                  id="email"
+                  type="text"
+                  autoComplete="username"
                   required
-                  placeholder="Enter your email"
+                  placeholder="Email or Username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={inputClass}
+                  className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 text-[15px] text-[#090044] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#109489]/40 focus:border-[#109489] transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <div className="flex justify-between items-center ml-1">
-                <label className="text-xs font-bold text-[#090044] uppercase tracking-wider">Password</label>
-                <button type="button" className="text-xs font-semibold text-[#00bf63] hover:underline">Forgot?</button>
+              <div className="flex justify-between items-baseline">
+                <label htmlFor="password" className="text-xs font-semibold text-[#090044] uppercase tracking-wider">
+                  Password
+                </label>
+                <a href="/auth/forgot-password" className="text-xs font-medium text-[#109489] hover:underline">
+                  Forgot password?
+                </a>
               </div>
-              <div className="relative mt-1">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <div className="relative mt-1.5">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={17} strokeWidth={1.75} />
                 <input
-                  type="password"
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   required
+                  minLength={6}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={inputClass}
+                  className="w-full pl-10 pr-11 py-3 rounded-lg border border-gray-200 text-[15px] text-[#090044] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#109489]/40 focus:border-[#109489] transition-colors"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#090044] transition-colors"
+                >
+                  {showPassword ? <EyeOff size={17} strokeWidth={1.75} /> : <Eye size={17} strokeWidth={1.75} />}
+                </button>
               </div>
             </div>
 
             <button
               type="submit"
               disabled={submitting || authLoading}
-              className="w-full bg-[#00bf63] hover:bg-[#090044] text-white font-bold py-4 rounded-xl shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70"
+              className="w-full bg-[#109489] hover:bg-[#090044] text-white font-semibold py-3.5 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
             >
-              {submitting ? <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" /> : "Sign In"}
+              {submitting ? (
+                <span className="h-[18px] w-[18px] animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              ) : (
+                <>
+                  Sign in <ArrowRight size={16} />
+                </>
+              )}
             </button>
           </form>
 
-          <div className="my-8 flex items-center gap-4 text-gray-400">
-            <div className="flex-1 h-px bg-gray-100" />
-            <span className="text-xs font-bold uppercase tracking-widest">Or</span>
-            <div className="flex-1 h-px bg-gray-100" />
+          <div className="my-7 flex items-center gap-4 text-gray-300">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">Or continue with</span>
+            <div className="flex-1 h-px bg-gray-200" />
           </div>
 
           <div className="flex justify-center">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
-              onError={() => toast.error("Google login failed")}
+              onError={() => toast.error("Google login failed.")}
               theme="outline"
               shape="pill"
-              width="320px"
+              width="320"
             />
           </div>
-        </div>
 
-        <p className="text-center mt-8 text-gray-600">
-          New here? <a href="/auth/register" className="text-[#00bf63] font-bold hover:underline">Create an account</a>
-        </p>
-      </div>
-    </section>
+          <p className="text-center mt-9 text-[14px] text-gray-500">
+            New here?{" "}
+            <a href="/auth/register" className="text-[#090044] font-semibold hover:text-[#109489] transition-colors">
+              Create an account
+            </a>
+          </p>
+        </div>
+      </main>
+    </div>
   );
 }

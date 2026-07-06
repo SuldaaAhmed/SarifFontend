@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
-import { X, Save } from "lucide-react";
+import { X, Save, EyeOff, Eye } from "lucide-react";
 
 export interface UserFormData {
   fullName: string;
@@ -35,7 +35,39 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
   const [form, setForm] = useState<UserFormData>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<keyof UserFormData, string>>>({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // ── formKey: number kordha reset kasta. key={formKey} ayaa body-ga saaran,
+  //    markaa reset kasta React wuxuu DOM inputs-ka BURBURIYAA oo dhisaa kuwo
+  //    cusub oo faaruq ah. Tani waxay qabataa xitaa haddii:
+  //    - Input component-ku uncontrolled yahay (value prop-ka ma gudbiyo)
+  //    - Browser autofill uu wax ku dul qoray DOM-ka
+  const [formKey, setFormKey] = useState(0);
+
+  // Rule kasta si gaar ah ayaa loo hubinayaa — checklist-ka ayaa isticmaalaya
+  const passwordRules = {
+    length: form.password.length >= 8,
+    uppercase: /[A-Z]/.test(form.password),
+    lowercase: /[a-z]/.test(form.password),
+    number: /\d/.test(form.password),
+    special: /[!@#$%^&*(),.?":{}|<>]/.test(form.password),
+  };
+  // isStrongPassword waxaa laga soo saaray isla rules-kan —
+  // labo regex oo kala duwan ma jiraan, markaa waligood iskuma khilaafaan
+  const isStrongPassword = Object.values(passwordRules).every(Boolean);
+
+  // ── Reset helper: hal meel oo lagu safeeyo form-ka + dhammaan UI state-yada la xiriira ──
+  const resetForm = useCallback(() => {
+    setForm(emptyForm);
+    setErrors({});
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+    setFormKey((k) => k + 1); // force remount — DOM inputs dhammaantood faaruq
+  }, []);
+
+  // ── Bilaabista modal-ka: haddii "edit" ah waxaa lagu buuxinayaa initialData,
+  //    haddii "add" ah mar walba wuu bilaabmaa faaruq ──
   useEffect(() => {
     if (open) {
       if (mode === "edit" && initialData) {
@@ -45,12 +77,18 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
           password: "",
           confirmPassword: "",
         });
+        setErrors({});
+        setShowPassword(false);
+        setShowConfirmPassword(false);
+        setFormKey((k) => k + 1); // remount si DOM-ku ula mid noqdo state-ka cusub
       } else {
-        setForm(emptyForm);
+        resetForm();
       }
-      setErrors({});
+    } else {
+      // Safety net: haddii modal-ka la xidho si kale (click-outside, route change, iwm)
+      resetForm();
     }
-  }, [mode, initialData, open]);
+  }, [mode, initialData, open, resetForm]);
 
   const update = (k: keyof UserFormData, v: string) => {
     setForm((p) => ({ ...p, [k]: v }));
@@ -60,9 +98,18 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
   const validate = () => {
     const e: typeof errors = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const usernameRegex = /^[a-zA-Z0-9._]{3,30}$/;
+
+    const value = form.email.trim();
 
     if (!form.fullName.trim()) e.fullName = "Full name is required";
-    if (!emailRegex.test(form.email)) e.email = "Invalid email address";
+
+    if (form.phone && !/^\d{6,10}$/.test(form.phone)) {
+      e.phone = "Phone number must be 6 to 10 digits";
+    }
+    if (!emailRegex.test(value) && !usernameRegex.test(value)) {
+      e.email = "Please enter a valid email address or username.";
+    }
 
     if (mode === "add") {
       if (form.password.length < 6) e.password = "Minimum 6 characters";
@@ -73,11 +120,17 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
     return !Object.keys(e).length;
   };
 
+  // ── Xidhista modal-ka: waxay marka hore safeeysaa form-ka, ka dibna wacdaa onClose ──
+  const handleClose = useCallback(() => {
+    resetForm();
+    onClose();
+  }, [resetForm, onClose]);
+
   const handleEsc = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") handleClose();
     },
-    [onClose]
+    [handleClose]
   );
 
   useEffect(() => {
@@ -90,6 +143,7 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
     setLoading(true);
     try {
       await onSubmit(form);
+      resetForm(); // xogta la safeeyo marka submit-ku guulaysto
     } finally {
       setLoading(false);
     }
@@ -116,16 +170,17 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
           </div>
           {/* RESPONSIVE: p-1.5 hover:bg-gray-100 rounded-full — same as WithdrawFormModal */}
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
-        {/* BODY */}
+        {/* BODY — key={formKey}: reset kasta DOM inputs-ka waa la burburiyaa,
+            kuwa cusub oo faaruq ah ayaa la dhisaa */}
         {/* RESPONSIVE: p-5 sm:p-6 — padding yar mobile-ka */}
-        <div className="p-5 sm:p-6 space-y-4">
+        <div key={formKey} className="p-5 sm:p-6 space-y-4">
 
           {/* Row 1 — Full Name + Email */}
           {/* RESPONSIVE: grid-cols-1 md:grid-cols-2 — mobile single column */}
@@ -138,12 +193,12 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
               />
             </Field>
 
-            <Field label="Email Address" required error={errors.email}>
+            <Field label="Email / Username" required error={errors.email}>
               <Input
-                type="email"
+                type="text"
                 value={form.email}
                 onChange={(e) => update("email", e.target.value)}
-                placeholder="email@example.com"
+                placeholder="Email or Username"
               />
             </Field>
           </div>
@@ -152,8 +207,14 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="Phone Number" error={errors.phone}>
               <Input
+                type="tel"
                 value={form.phone}
-                onChange={(e) => update("phone", e.target.value)}
+                onChange={(e) =>
+                  update(
+                    "phone",
+                    e.target.value.replace(/\D/g, "").slice(0, 10)
+                  )
+                }
                 placeholder="Phone"
               />
             </Field>
@@ -168,22 +229,88 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
 
           {/* Row 3 — Password fields (divider on top) */}
           <div className="pt-4 border-t border-gray-100 dark:border-gray-900 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Field label="Password" required={mode === "add"} error={errors.password}>
-              <Input
-                type="password"
-                value={form.password}
-                onChange={(e) => update("password", e.target.value)}
-                placeholder="••••••••"
-              />
+            <Field
+              label="Password"
+              required={mode === "add"}
+              error={errors.password}
+            >
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  value={form.password}
+                  onChange={(e) => update("password", e.target.value)}
+                  placeholder="••••••••"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+
+              {/* CHECKLIST — rule kasta wuxuu leeyahay ✓/✗ u gaar ah,
+                  si user-ku u arko midka qaldan */}
+              {form.password && (
+                <div className="mt-2 space-y-1">
+                  <Rule valid={passwordRules.length} text="At least 8 characters" />
+                  <Rule valid={passwordRules.uppercase} text="One uppercase letter" />
+                  <Rule valid={passwordRules.lowercase} text="One lowercase letter" />
+                  <Rule valid={passwordRules.number} text="One number" />
+                  <Rule valid={passwordRules.special} text="One special character" />
+                  {isStrongPassword && (
+                    <p className="text-xs font-medium text-green-600">✓ Strong password</p>
+                  )}
+                </div>
+              )}
             </Field>
 
-            <Field label="Confirm Password" required={mode === "add"} error={errors.confirmPassword}>
-              <Input
-                type="password"
-                value={form.confirmPassword}
-                onChange={(e) => update("confirmPassword", e.target.value)}
-                placeholder="••••••••"
-              />
+            <Field
+              label="Confirm Password"
+              required={mode === "add"}
+              error={errors.confirmPassword}
+            >
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  value={form.confirmPassword}
+                  onChange={(e) => update("confirmPassword", e.target.value)}
+                  placeholder="••••••••"
+                />
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowConfirmPassword(!showConfirmPassword)
+                  }
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+
+              {form.confirmPassword && (
+                <p
+                  className={`mt-2 text-xs ${form.password === form.confirmPassword
+                    ? "text-green-600"
+                    : "text-red-500"
+                    }`}
+                >
+                  {form.password === form.confirmPassword
+                    ? "✓ Passwords match"
+                    : "✗ Passwords do not match"}
+                </p>
+              )}
             </Field>
           </div>
         </div>
@@ -191,7 +318,7 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
         {/* ACTIONS — same layout as WithdrawFormModal (flex gap-3, py-2.5, w-1/2) */}
         <div className="flex gap-3 px-5 sm:px-6 pb-5 sm:pb-6">
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="w-1/2 border border-gray-300 py-2.5 rounded text-[13px] text-gray-600 hover:bg-gray-50 transition-colors"
           >
             Cancel
@@ -216,6 +343,18 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
 }
 
 /* ── Helpers ── */
+
+function Rule({ valid, text }: { valid: boolean; text: string }) {
+  return (
+    <div
+      className={`flex items-center gap-2 text-xs ${valid ? "text-green-600" : "text-red-500"
+        }`}
+    >
+      <span>{valid ? "✓" : "✗"}</span>
+      <span>{text}</span>
+    </div>
+  );
+}
 
 function GenderSelect(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
