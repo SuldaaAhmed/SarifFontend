@@ -78,7 +78,23 @@ export const SetupService = {
       getPermissions(page: number = 1, pageSize: number = 10, search: string = "") {
 
   return api.get(`/Setup/permission?page=${page}&pageSize=${pageSize}&search=${search}`);
+
+
 },
+
+
+
+      getPermission(page: number = 1, pageSize: number = 10, search: string = "") {
+
+  return api.get(`/Setup/permissions`);
+
+
+},
+
+
+
+
+
 
   createPermission(data: any) {    
     //console.log("Creating user with data:", data);
