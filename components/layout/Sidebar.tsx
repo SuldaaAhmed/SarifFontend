@@ -75,8 +75,8 @@ export default function Sidebar({ isCollapsed, isMobileOpen, onCloseMobile }: Si
         {/* BRANDING LOGO AREA - FIXED (SHRINK-0) */}
         <div className="flex h-16 shrink-0 items-center border-b border-white/10 px-6 justify-between">
           <div className={`flex items-center gap-3 ${isCollapsed && !isMobileOpen ? "lg:mx-auto" : ""}`}>
-            <div className="h-9 w-9 shrink-0 rounded-xl bg-white/20 flex items-center justify-center font-bold">T</div>
-            {(!isCollapsed || isMobileOpen) && <span className="font-bold text-lg tracking-tight uppercase truncate">Sarif Panel</span>}
+            <div className="h-9 w-9 shrink-0 rounded-xl bg-white/20 flex items-center justify-center font-bold">S</div>
+            {(!isCollapsed || isMobileOpen) && <span className="font-bold text-lg tracking-tight uppercase truncate">Exchange</span>}
           </div>
           <button onClick={onCloseMobile} className="lg:hidden p-2 text-white/70 hover:text-white">
             <X size={20} />

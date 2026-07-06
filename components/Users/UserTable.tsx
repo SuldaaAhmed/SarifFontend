@@ -22,6 +22,7 @@ interface UserDto {
 
 export default function UserTable() {
   const { hasPermission } = usePermission();
+  
   const [users, setUsers] = useState<UserDto[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);

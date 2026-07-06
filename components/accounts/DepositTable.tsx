@@ -161,10 +161,9 @@ export default function DepositTable() {
           <div className="p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
             <button
               onClick={() => {
-                setIsEdit(false);
-                setOpenForm(true);
+                toast.error("ka soo xaray customer page");
               }}
-              className="w-full md:w-auto bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px] hover:bg-[#089a86]"
+              className="w-full md:w-auto bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px] cursor-not-allowed"
             >
               + Add Deposit
             </button>
@@ -205,178 +204,178 @@ export default function DepositTable() {
             {/* ══════════════════════════════════════════
                 DESKTOP TABLE  (hidden on mobile)
             ══════════════════════════════════════════ */}
-          {/* Desktop Table */}
-<div className="hidden md:block overflow-x-auto">
-  <table className="w-full text-left border-collapse">
-    <thead className="bg-[#f3f6f9] text-[#878a99] text-[13px] font-bold uppercase border-b border-gray-200">
-      <tr>
-        <th className="p-3">Customer Name</th>
-        <th className="p-3">Account</th>
-        <th className="p-3">Balance</th>
-        <th className="p-3">Withdraw</th>
-        <th className="p-3">Deposited</th>
-        <th className="p-3">Code</th>
-        <th className="p-3">Status</th>
-        <th className="p-3">Created At</th>
-      </tr>
-    </thead>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-[#f3f6f9] text-[#878a99] text-[13px] font-bold uppercase border-b border-gray-200">
+                  <tr>
+                    <th className="p-3">Customer Name</th>
+                    <th className="p-3">Account</th>
+                    <th className="p-3">Balance</th>
+                    <th className="p-3">Withdraw</th>
+                    <th className="p-3">Deposited</th>
+                    <th className="p-3">Code</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3">Created At</th>
+                  </tr>
+                </thead>
 
-    <tbody className="divide-y divide-gray-100">
-      {data.map((item) => {
-        const status = getDepositStatusBadge(item.status);
+                <tbody className="divide-y divide-gray-100">
+                  {data.map((item) => {
+                    const status = getDepositStatusBadge(item.status);
 
-        return (
-          <tr
-            key={item.id}
-            className="text-[13px] hover:bg-gray-50"
-          >
-            <td className="p-3 font-medium text-[#495057]">
-              {item.customerName || "-"}
-            </td>
+                    return (
+                      <tr
+                        key={item.id}
+                        className="text-[13px] hover:bg-gray-50"
+                      >
+                        <td className="p-3 font-medium text-[#495057]">
+                          {item.customerName || "-"}
+                        </td>
 
-            <td className="p-3 text-gray-600">
-              {item.accountName || "-"}
-            </td>
+                        <td className="p-3 text-gray-600">
+                          {item.accountName || "-"}
+                        </td>
 
-            <td className="p-3 font-bold text-[#0ab39c]">
-              {formatMoney(item.balance ?? 0, item.currencyId)}
-            </td>
+                        <td className="p-3 font-bold text-[#0ab39c]">
+                          {formatMoney(item.balance ?? 0, item.currencyId)}
+                        </td>
 
-            <td className="p-3 font-medium text-[#f06548]">
-              {formatMoney(item.withdrawAmount ?? 0, item.currencyId)}
-            </td>
+                        <td className="p-3 font-medium text-[#f06548]">
+                          {formatMoney(item.withdrawAmount ?? 0, item.currencyId)}
+                        </td>
 
-            <td className="p-3 font-medium text-[#299cdb]">
-              {formatMoney(item.totalDeposited ?? 0, item.currencyId)}
-            </td>
+                        <td className="p-3 font-medium text-[#299cdb]">
+                          {formatMoney(item.totalDeposited ?? 0, item.currencyId)}
+                        </td>
 
-            <td className="p-3 text-[#0ab39c] font-bold">
-              {item.currencyCode || "-"}
-            </td>
+                        <td className="p-3 text-[#0ab39c] font-bold">
+                          {item.currencyCode || "-"}
+                        </td>
 
-            <td className="p-3">
-              <span
-                className={`px-2 py-1 rounded text-xs font-medium ${status.class}`}
-              >
-                {status.text}
-              </span>
-            </td>
+                        <td className="p-3">
+                          <span
+                            className={`px-2 py-1 rounded text-xs font-medium ${status.class}`}
+                          >
+                            {status.text}
+                          </span>
+                        </td>
 
-            <td className="p-3 text-gray-500">
-              {item.openedAt
-                ? new Date(item.openedAt).toLocaleDateString("en-US", {
-                    month: "2-digit",
-                    day: "2-digit",
-                    year: "2-digit",
-                  })
-                : "-"}
-            </td>
-          </tr>
-        );
-      })}
-    </tbody>
-  </table>
-</div>
+                        <td className="p-3 text-gray-500">
+                          {item.openedAt
+                            ? new Date(item.openedAt).toLocaleDateString("en-US", {
+                              month: "2-digit",
+                              day: "2-digit",
+                              year: "2-digit",
+                            })
+                            : "-"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
             {/* ══════════════════════════════════════════
                 MOBILE CARDS  (shown only on mobile)
             ══════════════════════════════════════════ */}
-          {/* Mobile View */}
-<div className="block md:hidden divide-y divide-gray-100">
-  {data.map((item) => {
-    const status = getDepositStatusBadge(item.status);
+            {/* Mobile View */}
+            <div className="block md:hidden divide-y divide-gray-100">
+              {data.map((item) => {
+                const status = getDepositStatusBadge(item.status);
 
-    return (
-      <div
-        key={item.id}
-        className="px-4 py-4 hover:bg-gray-50"
-      >
-        {/* Customer and status */}
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <span className="text-[13px] font-semibold text-[#495057] truncate">
-            {item.customerName || "-"}
-          </span>
+                return (
+                  <div
+                    key={item.id}
+                    className="px-4 py-4 hover:bg-gray-50"
+                  >
+                    {/* Customer and status */}
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[13px] font-semibold text-[#495057] truncate">
+                        {item.customerName || "-"}
+                      </span>
 
-          <span
-            className={`px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap ${status.class}`}
-          >
-            {status.text}
-          </span>
-        </div>
+                      <span
+                        className={`px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap ${status.class}`}
+                      >
+                        {status.text}
+                      </span>
+                    </div>
 
-        {/* Account and currency */}
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <span className="text-[12px] text-gray-400 truncate">
-            {item.accountName || "-"}
-          </span>
+                    {/* Account and currency */}
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className="text-[12px] text-gray-400 truncate">
+                        {item.accountName || "-"}
+                      </span>
 
-          <span className="text-[#0ab39c] font-bold text-[11px]">
-            {item.currencyCode || "-"}
-          </span>
-        </div>
+                      <span className="text-[#0ab39c] font-bold text-[11px]">
+                        {item.currencyCode || "-"}
+                      </span>
+                    </div>
 
-        {/* Financial summary */}
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          <div className="bg-[#f3f6f9] rounded p-2">
-            <div className="text-[10px] text-gray-400 mb-1">
-              Deposited
+                    {/* Financial summary */}
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      <div className="bg-[#f3f6f9] rounded p-2">
+                        <div className="text-[10px] text-gray-400 mb-1">
+                          Deposited
+                        </div>
+
+                        <div className="text-[12px] font-bold text-[#299cdb] break-all">
+                          {formatMoney(
+                            item.totalDeposited ?? 0,
+                            item.currencyId
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="bg-[#f3f6f9] rounded p-2">
+                        <div className="text-[10px] text-gray-400 mb-1">
+                          Withdrawn
+                        </div>
+
+                        <div className="text-[12px] font-bold text-[#f06548] break-all">
+                          {formatMoney(
+                            item.withdrawAmount ?? 0,
+                            item.currencyId
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="bg-[#f3f6f9] rounded p-2">
+                        <div className="text-[10px] text-gray-400 mb-1">
+                          Balance
+                        </div>
+
+                        <div className="text-[12px] font-bold text-[#0ab39c] break-all">
+                          {formatMoney(
+                            item.balance ?? 0,
+                            item.currencyId
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Date */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] text-gray-400">
+                        {item.openedAt
+                          ? new Date(item.openedAt).toLocaleDateString("en-US", {
+                            month: "2-digit",
+                            day: "2-digit",
+                            year: "2-digit",
+                          })
+                          : "-"}
+                      </span>
+
+                      <span className="text-[11px] text-gray-400">
+                        {item.depositNo || ""}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-
-            <div className="text-[12px] font-bold text-[#299cdb] break-all">
-              {formatMoney(
-                item.totalDeposited ?? 0,
-                item.currencyId
-              )}
-            </div>
-          </div>
-
-          <div className="bg-[#f3f6f9] rounded p-2">
-            <div className="text-[10px] text-gray-400 mb-1">
-              Withdrawn
-            </div>
-
-            <div className="text-[12px] font-bold text-[#f06548] break-all">
-              {formatMoney(
-                item.withdrawAmount ?? 0,
-                item.currencyId
-              )}
-            </div>
-          </div>
-
-          <div className="bg-[#f3f6f9] rounded p-2">
-            <div className="text-[10px] text-gray-400 mb-1">
-              Balance
-            </div>
-
-            <div className="text-[12px] font-bold text-[#0ab39c] break-all">
-              {formatMoney(
-                item.balance ?? 0,
-                item.currencyId
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Date */}
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[11px] text-gray-400">
-            {item.openedAt
-              ? new Date(item.openedAt).toLocaleDateString("en-US", {
-                  month: "2-digit",
-                  day: "2-digit",
-                  year: "2-digit",
-                })
-              : "-"}
-          </span>
-
-          <span className="text-[11px] text-gray-400">
-            {item.depositNo || ""}
-          </span>
-        </div>
-      </div>
-    );
-  })}
-</div>
           </div>
 
           {/* PAGINATION */}
