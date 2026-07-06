@@ -53,7 +53,7 @@ export default function RolePermissionFormModal({ open, mode, initialData, onClo
       try {
         const [roleRes, permRes] = await Promise.all([
           UsersService.getRoles(),
-          SetupService.getPermissions() 
+          SetupService.getPermission() 
         ]);
         
         // Roles: Using the logic from your original working version
@@ -62,6 +62,7 @@ export default function RolePermissionFormModal({ open, mode, initialData, onClo
 
         // Permissions: Using the nested logic from your second payload
         const permItems = permRes.data?.data?.data || permRes.data?.data || [];
+      //  alert("Permissions fetched: " + JSON.stringify(permItems)); // Debugging line
         setPermissions(Array.isArray(permItems) ? permItems : []);
         
       } catch (err) {
