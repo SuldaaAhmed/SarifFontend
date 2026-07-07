@@ -6,7 +6,7 @@ import ConfirmDeleteModal from "../ui/Model/ConfirmDeleteModal";
 import { SetupService } from "@/lib/setup";
 import toast from "react-hot-toast";
 import { usePermission } from "@/context/PermissionContext";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Edit } from "lucide-react";
 
 // Matches your provided Role Permission JSON structure
 interface RolePermissionDto {
@@ -30,9 +30,9 @@ export default function RolePermissionTable() {
   const [selectedItem, setSelectedItem] = useState<RolePermissionDto | null>(null);
   const [openDelete, setOpenDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  
+
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalItems, setTotalItems] = useState(0); 
+  const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 10;
 
   const loadData = useCallback(async (page: number, searchQuery: string) => {
@@ -41,14 +41,14 @@ export default function RolePermissionTable() {
       // Logic for: res.data.data.data
       const res = await SetupService.getRolePermissions(page, itemsPerPage);
       const apiResponse = res.data?.data;
-      
+
       if (apiResponse) {
         const rawData = apiResponse.data || [];
-        
+
         // Filtering by Role Name or Permission Name to keep search functional
-        const filtered = rawData.filter((item: RolePermissionDto) => 
-            item.roleName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.permissionName.toLowerCase().includes(searchQuery.toLowerCase())
+        const filtered = rawData.filter((item: RolePermissionDto) =>
+          item.roleName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.permissionName.toLowerCase().includes(searchQuery.toLowerCase())
         );
 
         setData(filtered);
@@ -70,7 +70,7 @@ export default function RolePermissionTable() {
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const handleFormSubmit = async (formData: RolePermissionFormData) => {
@@ -218,7 +218,7 @@ export default function RolePermissionTable() {
               </div>
             )}
             {loading && data.length === 0 ? (
-              [1,2,3].map(i => (
+              [1, 2, 3].map(i => (
                 <div key={i} className="p-4 animate-pulse">
                   <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
                 </div>
@@ -253,7 +253,7 @@ export default function RolePermissionTable() {
               Showing <span className="font-semibold">{startIndex}</span> to <span className="font-semibold">{endIndex}</span> of <span className="font-semibold">{totalItems}</span> Results
             </span>
             <div className="flex flex-wrap items-center gap-1">
-              <button 
+              <button
                 disabled={currentPage === 1 || loading}
                 onClick={() => setCurrentPage(p => p - 1)}
                 className="px-3 py-1.5 border border-gray-200 rounded text-[13px] disabled:opacity-40"
@@ -269,7 +269,7 @@ export default function RolePermissionTable() {
                   {page}
                 </button>
               ))}
-              <button 
+              <button
                 disabled={currentPage >= totalPages || loading}
                 onClick={() => setCurrentPage(p => p + 1)}
                 className="px-3 py-1.5 border border-gray-200 rounded text-[13px] disabled:opacity-40"
@@ -281,22 +281,22 @@ export default function RolePermissionTable() {
         </div>
       </div>
 
-      <RolePermissionFormModal 
-        open={openModal} 
-        mode={mode} 
+      <RolePermissionFormModal
+        open={openModal}
+        mode={mode}
         initialData={selectedItem ? {
           roleId: selectedItem.roleId,
           permissionIds: [selectedItem.permissionId],
-        } : undefined} 
-        onClose={() => setOpenModal(false)} 
-        onSubmit={handleFormSubmit} 
+        } : undefined}
+        onClose={() => setOpenModal(false)}
+        onSubmit={handleFormSubmit}
       />
 
-      <ConfirmDeleteModal 
-        open={openDelete} 
-        loading={deleting} 
-        onClose={() => setOpenDelete(false)} 
-        onConfirm={confirmDelete} 
+      <ConfirmDeleteModal
+        open={openDelete}
+        loading={deleting}
+        onClose={() => setOpenDelete(false)}
+        onConfirm={confirmDelete}
       />
     </div>
   );
