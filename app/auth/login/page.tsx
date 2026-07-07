@@ -150,20 +150,18 @@ export default function LoginPage() {
         <div className="relative z-10 flex items-center gap-2 text-white/35 text-xs">
           <span>© {new Date().getFullYear()}</span>
           <span className="h-1 w-1 rounded-full bg-white/20" />
-          <span>All access is logged</span>
+          <span>XALSOOR.COM</span>
         </div>
       </aside>
 
       {/* Right panel — form */}
       <main className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-[400px] fade-up">
-          {/* mobile-only brand mark */}
           <div className="lg:hidden flex items-center gap-2.5 mb-10">
             <div className="h-8 w-8 rounded-md bg-[#109489] flex items-center justify-center">
-              {/* CILAD LA SAXAY: text-[#109489] on bg-[#109489] = xaraf aan muuqan */}
               <span className="text-white font-bold text-sm" style={{ fontFamily: "var(--font-display)" }}>A</span>
             </div>
-            <span className="text-[#109489] text-sm font-semibold tracking-wide uppercase">Access Portal</span>
+            <span className="text-[#109489] text-sm font-semibold tracking-wide uppercase">Access </span>
           </div>
 
           <h2
