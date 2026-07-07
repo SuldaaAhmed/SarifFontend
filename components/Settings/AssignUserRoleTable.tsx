@@ -18,6 +18,7 @@ import {
 
 import { UsersService } from "@/lib/users";
 import AssignUserRoleModal from "./AssignUserRoleModal";
+import { usePermission } from "@/context/PermissionContext";
 
 interface UserWithRoleDto {
   id: string;
@@ -42,6 +43,7 @@ interface UsersPaginationDto {
 
 export default function AssignUserRoleTable() {
   const [users, setUsers] = useState<UserWithRoleDto[]>([]);
+  const { hasPermission } = usePermission();
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
@@ -101,7 +103,7 @@ export default function AssignUserRoleTable() {
 
       toast.error(
         error?.response?.data?.message ||
-          "Failed to load users with roles"
+        "Failed to load users with roles"
       );
 
       setUsers([]);
@@ -187,6 +189,11 @@ export default function AssignUserRoleTable() {
     );
   };
 
+
+  const canAdd = hasPermission("CREATE.ASSIGNUSERROLE");
+  const canEdit = hasPermission("EDIT.ASSIGNUSERROLE");
+  const canDelete = hasPermission("DELETE.ASSIGNUSERROLE");
+
   return (
     <div className="min-h-screen bg-[#f3f3f9] p-4 font-sans text-[#495057] dark:bg-gray-900 sm:p-6">
       <div className="mx-auto max-w-7xl">
@@ -216,16 +223,18 @@ export default function AssignUserRoleTable() {
         <div className="overflow-hidden rounded border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
           {/* Toolbar */}
           <div className="flex flex-col items-center justify-between gap-4 border-b border-gray-100 p-4 dark:border-gray-700 md:flex-row">
-            <button
-              type="button"
-              onClick={() =>
-                setOpenAssignModal(true)
-              }
-              className="flex w-full items-center justify-center gap-2 rounded bg-[#0ab39c] px-4 py-2 text-[13px] font-medium text-white transition-all hover:bg-[#099885] md:w-auto"
-            >
-              <UserPlus size={16} />
-              Assign Role
-            </button>
+            {canAdd && (
+              <button
+                type="button"
+                onClick={() =>
+                  setOpenAssignModal(true)
+                }
+                className="flex w-full items-center justify-center gap-2 rounded bg-[#0ab39c] px-4 py-2 text-[13px] font-medium text-white transition-all hover:bg-[#099885] md:w-auto"
+              >
+                <UserPlus size={16} />
+                Assign Role
+              </button>
+            )}
 
             <div className="relative w-full md:w-72">
               <input
@@ -295,7 +304,7 @@ export default function AssignUserRoleTable() {
 
                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                   {!loading &&
-                  filteredUsers.length === 0 ? (
+                    filteredUsers.length === 0 ? (
                     <tr>
                       <td
                         colSpan={6}
@@ -400,7 +409,7 @@ export default function AssignUserRoleTable() {
             {/* Mobile cards */}
             <div className="block divide-y divide-gray-100 dark:divide-gray-700 md:hidden">
               {!loading &&
-              filteredUsers.length === 0 ? (
+                filteredUsers.length === 0 ? (
                 <div className="p-8 text-center text-sm italic text-gray-400">
                   No users found
                 </div>
@@ -546,11 +555,10 @@ export default function AssignUserRoleTable() {
                     setCurrentPage(page)
                   }
                   disabled={loading}
-                  className={`rounded px-3 py-1.5 text-[13px] transition-all ${
-                    currentPage === page
-                      ? "bg-[#405189] font-bold text-white shadow-md"
-                      : "border border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700"
-                  }`}
+                  className={`rounded px-3 py-1.5 text-[13px] transition-all ${currentPage === page
+                    ? "bg-[#405189] font-bold text-white shadow-md"
+                    : "border border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700"
+                    }`}
                 >
                   {page}
                 </button>
@@ -560,7 +568,7 @@ export default function AssignUserRoleTable() {
                 type="button"
                 disabled={
                   currentPage >=
-                    totalPages ||
+                  totalPages ||
                   loading ||
                   totalPages === 0
                 }

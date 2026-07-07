@@ -5,8 +5,8 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "react-hot-toast";
 
 export const metadata = {
-  title: "Adnan Kahiye - System Builder",
-  description: "SaaS built with Next.js",
+  title: "Xalsoora Technologies",
+  description: "Xalsoora Technologies - Empowering Your Digital Journey",
   icons: {
     icon: "/Images/logo.png",
   },

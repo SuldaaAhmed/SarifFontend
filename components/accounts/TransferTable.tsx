@@ -6,7 +6,8 @@ import ConfirmDeleteModal from "../ui/Model/ConfirmDeleteModal";
 import { AccountService } from "@/lib/account";
 import toast from "react-hot-toast";
 import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
-import DepositFormModal  from "./TaransferFormModal";
+import DepositFormModal from "./TaransferFormModal";
+import { usePermission } from "@/context/PermissionContext";
 
 export const getDepositStatusBadge = (status: number) => {
   switch (status) {
@@ -37,13 +38,13 @@ export const getDepositStatusBadge = (status: number) => {
 interface TransferDto {
   id: string;
   senderName: string;
-receiverName: string;
+  receiverName: string;
   amount: number;
   startDate: string;
   fromAccountName: string;
-   toAccountName: string;
+  toAccountName: string;
   status: number;
-createdAt: string;
+  createdAt: string;
 
 
 }
@@ -59,54 +60,54 @@ export default function TransferTable() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  
+  const { hasPermission } = usePermission();
   const [fromDate, setFromDate] = useState(firstDay);
   const [toDate, setToDate] = useState(today);
-  
+
   const [openForm, setOpenForm] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [selectedItem, setSelectedItem] = useState<TransferDto | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
 
-const getCurrencySymbol = (currencyId?: number) => {
-  if (!currencyId) return "";
+  const getCurrencySymbol = (currencyId?: number) => {
+    if (!currencyId) return "";
 
-  switch (currencyId) {
-    case 1: return "$";
-    case 2: return "Sh";
-    case 3: return "KSh";
-    default: return "";
-  }
-};
-
-
+    switch (currencyId) {
+      case 1: return "$";
+      case 2: return "Sh";
+      case 3: return "KSh";
+      default: return "";
+    }
+  };
 
 
 
-const formatMoney = (amount?: number, currencyId?: number) => {
-  const symbol = getCurrencySymbol(currencyId);
-  
 
-  const value = new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount || 0);
 
-  return (
-    <span className="flex items-center gap-1">
-      {/* Symbol */}
-      <span className="text-gray-400 text-xs font-semibold">
-        {symbol}
+  const formatMoney = (amount?: number, currencyId?: number) => {
+    const symbol = getCurrencySymbol(currencyId);
+
+
+    const value = new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount || 0);
+
+    return (
+      <span className="flex items-center gap-1">
+        {/* Symbol */}
+        <span className="text-gray-400 text-xs font-semibold">
+          {symbol}
+        </span>
+
+        {/* Amount */}
+        <span className="text-gray-900 font-bold">
+          {value}
+        </span>
       </span>
-
-      {/* Amount */}
-      <span className="text-gray-900 font-bold">
-        {value}
-      </span>
-    </span>
-  );
-};
+    );
+  };
 
 
 
@@ -117,9 +118,9 @@ const formatMoney = (amount?: number, currencyId?: number) => {
     setLoading(true);
     try {
       const res = await AccountService.getTransfers(
-        page, 
-        itemsPerPage, 
-        useFilters ? fromDate : firstDay, 
+        page,
+        itemsPerPage,
+        useFilters ? fromDate : firstDay,
         useFilters ? toDate : today
       );
       const apiResponse = res.data?.data;
@@ -158,6 +159,11 @@ const formatMoney = (amount?: number, currencyId?: number) => {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
+  const canAdd = hasPermission("CREATE.TRANSFER");
+  const canEdit = hasPermission("EDIT.TRANSFER");
+  const canDelete = hasPermission("DELETE.TRANSFER");
+
+
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-4 sm:p-6 font-sans text-[#495057]">
       <div className="mx-auto max-w-7xl">
@@ -168,13 +174,15 @@ const formatMoney = (amount?: number, currencyId?: number) => {
 
         <div className="bg-white dark:bg-gray-800 border border-gray-200 rounded shadow-sm overflow-hidden">
           <div className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-            <button 
-              onClick={() => { setIsEdit(false); setOpenForm(true); }} 
-              className="w-full md:w-auto bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px] hover:bg-[#089a86]"
-            >
-              + Add Transfer
-            </button>
-            
+            {canAdd && (
+              <button
+                onClick={() => { setIsEdit(false); setOpenForm(true); }}
+                className="w-full md:w-auto bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px] hover:bg-[#089a86]"
+              >
+                + Add Transfer
+              </button>
+            )}
+
             <div className="w-full md:w-auto flex flex-col sm:flex-row items-center gap-2">
               <input type="date" value={fromDate} className="w-full sm:w-auto border p-2 rounded text-[13px]" onChange={(e) => setFromDate(e.target.value)} />
               <input type="date" value={toDate} className="w-full sm:w-auto border p-2 rounded text-[13px]" onChange={(e) => setToDate(e.target.value)} />
@@ -184,130 +192,130 @@ const formatMoney = (amount?: number, currencyId?: number) => {
             </div>
           </div>
 
-         <div className="relative min-h-[300px]">
-  {loading && (
-    <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
-      <Loader2 className="animate-spin text-[#405189]" size={30} />
-    </div>
-  )}
+          <div className="relative min-h-[300px]">
+            {loading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white/50 z-10">
+                <Loader2 className="animate-spin text-[#405189]" size={30} />
+              </div>
+            )}
 
-  {/* Desktop table */}
-  <div className="hidden md:block overflow-x-auto">
-    <table className="w-full text-left border-collapse">
-      <thead className="bg-[#f3f6f9] text-[#878a99] text-[13px] font-bold uppercase border-b border-gray-200">
-        <tr>
-          <th className="p-3">Sender</th>
-          <th className="p-3">Receiver </th>
-          <th className="p-3">From </th>
-          <th className="p-3">To</th>
-          <th className="p-3">Amount</th>
-          <th className="p-3">Status</th>
-          <th className="p-3">CreateAt</th>
-          <th className="p-3 text-center">Action</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-100">
-        {data.map((item) => (
-          <tr key={item.id} className="text-[13px] hover:bg-gray-50">
-            <td className="p-3">{item.senderName}</td>
-            <td className="p-3">{item.receiverName}</td>
-            <td className="p-3">{item.fromAccountName}</td>
-            <td className="p-3">{item.toAccountName}</td>
-            <td className="p-3 text-[#0ab39c] font-bold">
-              {(item.amount || 0).toLocaleString("en-US", { style: "currency", currency: "USD" })}
-            </td>
-            <td className="p-3">
-              {(() => {
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-[#f3f6f9] text-[#878a99] text-[13px] font-bold uppercase border-b border-gray-200">
+                  <tr>
+                    <th className="p-3">Sender</th>
+                    <th className="p-3">Receiver </th>
+                    <th className="p-3">From </th>
+                    <th className="p-3">To</th>
+                    <th className="p-3">Amount</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3">CreateAt</th>
+                    <th className="p-3 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {data.map((item) => (
+                    <tr key={item.id} className="text-[13px] hover:bg-gray-50">
+                      <td className="p-3">{item.senderName}</td>
+                      <td className="p-3">{item.receiverName}</td>
+                      <td className="p-3">{item.fromAccountName}</td>
+                      <td className="p-3">{item.toAccountName}</td>
+                      <td className="p-3 text-[#0ab39c] font-bold">
+                        {(item.amount || 0).toLocaleString("en-US", { style: "currency", currency: "USD" })}
+                      </td>
+                      <td className="p-3">
+                        {(() => {
+                          const status = getDepositStatusBadge(item.status);
+                          return (
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${status.class}`}>
+                              {status.text}
+                            </span>
+                          );
+                        })()}
+                      </td>
+                      <td className="p-3">
+                        {new Date(item.createdAt).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" })}
+                      </td>
+                      <td className="p-3 text-center">
+                        <div className="flex gap-2 justify-center">
+                          <button onClick={() => handleEdit(item)} className="bg-[#299cdb] text-white px-3 py-1 rounded text-[11px]">Edit</button>
+                          <button onClick={() => { setSelectedItem(item); setOpenDelete(true); }} className="bg-[#f06548] text-white px-3 py-1 rounded text-[11px]">Remove</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="block md:hidden divide-y divide-gray-100">
+              {data.map((item) => {
                 const status = getDepositStatusBadge(item.status);
                 return (
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${status.class}`}>
-                    {status.text}
-                  </span>
+                  <div key={item.id} className="px-4 py-3 hover:bg-gray-50">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[13px] font-semibold text-[#495057] truncate">{item.senderName}</span>
+                      <span className={`px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap ${status.class}`}>{status.text}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[12px] text-gray-500 truncate">→ {item.receiverName}</span>
+                      <span className="text-[#0ab39c] font-bold text-[13px] shrink-0">
+                        {(item.amount || 0).toLocaleString("en-US", { style: "currency", currency: "USD" })}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-gray-400 mb-2 truncate">{item.fromAccountName} → {item.toAccountName}</div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] text-gray-400">
+                        {new Date(item.createdAt).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" })}
+                      </span>
+                      <div className="flex gap-1.5 shrink-0">
+                        <button onClick={() => handleEdit(item)} className="bg-[#299cdb] text-white px-2.5 py-1 rounded text-[11px] leading-none">Edit</button>
+                        <button onClick={() => { setSelectedItem(item); setOpenDelete(true); }} className="bg-[#f06548] text-white px-2.5 py-1 rounded text-[11px] leading-none">Remove</button>
+                      </div>
+                    </div>
+                  </div>
                 );
-              })()}
-            </td>
-            <td className="p-3">
-              {new Date(item.createdAt).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" })}
-            </td>
-            <td className="p-3 text-center">
-              <div className="flex gap-2 justify-center">
-                <button onClick={() => handleEdit(item)} className="bg-[#299cdb] text-white px-3 py-1 rounded text-[11px]">Edit</button>
-                <button onClick={() => { setSelectedItem(item); setOpenDelete(true); }} className="bg-[#f06548] text-white px-3 py-1 rounded text-[11px]">Remove</button>
-              </div>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
+              })}
+            </div>
+          </div>
 
-  {/* Mobile cards */}
-  <div className="block md:hidden divide-y divide-gray-100">
-    {data.map((item) => {
-      const status = getDepositStatusBadge(item.status);
-      return (
-        <div key={item.id} className="px-4 py-3 hover:bg-gray-50">
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <span className="text-[13px] font-semibold text-[#495057] truncate">{item.senderName}</span>
-            <span className={`px-2 py-0.5 rounded text-[11px] font-medium whitespace-nowrap ${status.class}`}>{status.text}</span>
-          </div>
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <span className="text-[12px] text-gray-500 truncate">→ {item.receiverName}</span>
-            <span className="text-[#0ab39c] font-bold text-[13px] shrink-0">
-              {(item.amount || 0).toLocaleString("en-US", { style: "currency", currency: "USD" })}
-            </span>
-          </div>
-          <div className="text-[11px] text-gray-400 mb-2 truncate">{item.fromAccountName} → {item.toAccountName}</div>
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] text-gray-400">
-              {new Date(item.createdAt).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "2-digit" })}
-            </span>
-            <div className="flex gap-1.5 shrink-0">
-              <button onClick={() => handleEdit(item)} className="bg-[#299cdb] text-white px-2.5 py-1 rounded text-[11px] leading-none">Edit</button>
-              <button onClick={() => { setSelectedItem(item); setOpenDelete(true); }} className="bg-[#f06548] text-white px-2.5 py-1 rounded text-[11px] leading-none">Remove</button>
+          <div className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span className="text-[13px] text-[#878a99]">Showing {startIndex} to {endIndex} of {totalItems} Results</span>
+            <div className="flex gap-1">
+              <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="p-1.5 border rounded"><ChevronLeft size={16} /></button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button key={page} onClick={() => setCurrentPage(page)} className={`px-3 py-1.5 rounded text-[13px] ${currentPage === page ? "bg-[#405189] text-white" : "border"}`}>{page}</button>
+              ))}
+              <button disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => p + 1)} className="p-1.5 border rounded"><ChevronRight size={16} /></button>
             </div>
           </div>
         </div>
-      );
-    })}
-  </div>
-</div>
-
-          <div className="p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-             <span className="text-[13px] text-[#878a99]">Showing {startIndex} to {endIndex} of {totalItems} Results</span>
-             <div className="flex gap-1">
-               <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="p-1.5 border rounded"><ChevronLeft size={16} /></button>
-               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                 <button key={page} onClick={() => setCurrentPage(page)} className={`px-3 py-1.5 rounded text-[13px] ${currentPage === page ? "bg-[#405189] text-white" : "border"}`}>{page}</button>
-               ))}
-               <button disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => p + 1)} className="p-1.5 border rounded"><ChevronRight size={16} /></button>
-             </div>
-          </div>
-        </div>
       </div>
-      
-<DepositFormModal
-  open={openForm}
-  onClose={() => setOpenForm(false)}
-  onSubmit={async (data: CreateTransferRequest) => {
-    try {
-      if (isEdit && selectedItem) {
-        // UPDATE
-       await AccountService.updateTransfer(selectedItem.id, data);
-        toast.success("Transaction updated");
-      } else {
-        // ADD
-        await AccountService.createTransfer(data);
-        toast.success("Transaction created");
-      }
 
-      setOpenForm(false);
-      loadData(currentPage); // refresh table
-    } catch (err) {
-      toast.error("Save failed");
-    }
-  }}
-/>
+      <DepositFormModal
+        open={openForm}
+        onClose={() => setOpenForm(false)}
+        onSubmit={async (data: CreateTransferRequest) => {
+          try {
+            if (isEdit && selectedItem) {
+              // UPDATE
+              await AccountService.updateTransfer(selectedItem.id, data);
+              toast.success("Transaction updated");
+            } else {
+              // ADD
+              await AccountService.createTransfer(data);
+              toast.success("Transaction created");
+            }
+
+            setOpenForm(false);
+            loadData(currentPage); // refresh table
+          } catch (err) {
+            toast.error("Save failed");
+          }
+        }}
+      />
       <ConfirmDeleteModal open={openDelete} loading={deleting} onClose={() => setOpenDelete(false)} onConfirm={confirmDelete} />
     </div>
   );

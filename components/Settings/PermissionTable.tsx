@@ -98,9 +98,9 @@ export default function PermissionTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
-  const canAdd = hasPermission("CREATE.USER");
-  const canEdit = hasPermission("EDIT.USER");
-  const canDelete = hasPermission("DELETE.USER");
+  const canAdd = hasPermission("CREATE.PERMISSIddON");
+  const canEdit = hasPermission("EDIT.PERMISSIONddd");
+  const canDelete = hasPermission("DELETE.PERMISSdddION");
 
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-4 sm:p-6 font-sans">

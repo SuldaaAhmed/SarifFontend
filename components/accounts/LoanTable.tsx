@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { Loader2, ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Trash2, RefreshCw } from "lucide-react";
 import LoanFormModal from "./LoanFormModal";
 import RepaymentFormModal, { CreateRepaymentRequest } from "./RepaymentFormModal";
+import { usePermission } from "@/context/PermissionContext";
 
 export const getDepositStatusBadge = (status: number) => {
   switch (status) {
@@ -44,6 +45,7 @@ function ActionDropdown({
   onDelete: (item: LoanDto) => void;
   onRepayment: (item: LoanDto) => void;
 }) {
+  
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -128,6 +130,7 @@ function ActionDropdown({
 export default function LoanTable() {
 
   const router = useRouter();
+  const { hasPermission } = usePermission();
   const today = new Date().toISOString().split("T")[0];
   const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
     .toISOString().split("T")[0];
@@ -200,6 +203,11 @@ export default function LoanTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
+  const canAdd = hasPermission("CREATE.LOAN");
+  const canEdit = hasPermission("EDIT.LOAN");
+  const canDelete = hasPermission("DELETE.LOAN");
+
+
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-4 sm:p-6 font-sans text-[#495057]">
       <div className="mx-auto max-w-7xl">
@@ -210,6 +218,14 @@ export default function LoanTable() {
 
         <div className="bg-white dark:bg-gray-800 border border-gray-200 rounded shadow-sm overflow-hidden">
           <div className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            {canAdd && (
+              <button
+                onClick={() => { setIsEdit(false); setOpenForm(true); }}
+                className="w-full md:w-auto bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px]"
+              >
+                + Add Loan
+              </button>
+            )}
             <button
               onClick={() => {
                 toast.error("ka soo xaray customer page");

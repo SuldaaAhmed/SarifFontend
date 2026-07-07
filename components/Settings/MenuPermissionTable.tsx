@@ -19,7 +19,6 @@ interface MenuPermissionDto {
 
 export default function MenuPermissionTable() {
   const { hasPermission } = usePermission();
-  
   // State
   const [data, setData] = useState<MenuPermissionDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,11 +40,11 @@ export default function MenuPermissionTable() {
     try {
       const res = await SetupService.getMenuPermissions(page, itemsPerPage);
       const apiResponse = res.data?.data;
-      
+
       if (apiResponse) {
         let rawData = apiResponse.data || [];
         if (searchQuery) {
-          rawData = rawData.filter((m: MenuPermissionDto) => 
+          rawData = rawData.filter((m: MenuPermissionDto) =>
             m.menuTitle.toLowerCase().includes(searchQuery.toLowerCase())
           );
         }
@@ -69,8 +68,6 @@ export default function MenuPermissionTable() {
   // --- CRUD Actions ---
   const handleFormSubmit = async (formData: RolePermissionFormData) => {
     try {
-      // Per Swagger: menuId is needed in the body
-      // We take the first ID from menuIds or fall back to roleId
       const targetMenuId = Number(formData.menuIds?.[0] || formData.roleId);
 
       const payload = {
@@ -114,10 +111,14 @@ export default function MenuPermissionTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
+  const canAdd = hasPermission("CREATE.MENUPERMISSION");
+  const canEdit = hasPermission("EDIT.MENUPERMISSION");
+  const canDelete = hasPermission("DELETE.MENUPERMISSION");
+
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-4 sm:p-6 font-sans text-[#495057]">
       <div className="mx-auto max-w-7xl">
-        
+
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-[15px] font-bold dark:text-gray-200 uppercase tracking-wide">Menu Permissions</h2>
@@ -127,15 +128,17 @@ export default function MenuPermissionTable() {
         </div>
 
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-sm overflow-hidden">
-          
+
           {/* Toolbar */}
           <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex flex-col md:flex-row items-center justify-between gap-4">
-            <button
-              onClick={() => { setMode("add"); setSelectedItem(null); setOpenModal(true); }}
-              className="bg-[#0ab39c] hover:bg-[#099885] text-white px-4 py-2 rounded text-[13px] flex items-center gap-1 transition-all"
-            >
-              <span className="text-lg">+</span> Add Permission
-            </button>
+            {canAdd && (
+              <button
+                onClick={() => { setMode("add"); setSelectedItem(null); setOpenModal(true); }}
+                className="bg-[#0ab39c] hover:bg-[#099885] text-white px-4 py-2 rounded text-[13px] flex items-center gap-1 transition-all"
+              >
+                <span className="text-lg">+</span> Add Permission
+              </button>
+            )}
 
             <div className="relative w-full md:w-64">
               <input
@@ -152,9 +155,9 @@ export default function MenuPermissionTable() {
           {/* Table Body */}
           <div className="relative min-h-75">
             {loading && (
-               <div className="absolute inset-0 bg-white/40 dark:bg-gray-800/40 z-10 flex items-center justify-center">
-                 <Loader2 className="animate-spin text-[#405189]" size={30} />
-               </div>
+              <div className="absolute inset-0 bg-white/40 dark:bg-gray-800/40 z-10 flex items-center justify-center">
+                <Loader2 className="animate-spin text-[#405189]" size={30} />
+              </div>
             )}
 
             {/* Desktop table */}
@@ -186,9 +189,31 @@ export default function MenuPermissionTable() {
                           </div>
                         </td>
                         <td className="p-3 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button onClick={() => { setMode("edit"); setSelectedItem(item); setOpenModal(true); }} className="bg-[#299cdb] text-white px-3 py-1 rounded text-[11px] shadow-sm hover:brightness-110">Edit</button>
-                            <button onClick={() => { setSelectedItem(item); setOpenDelete(true); }} className="bg-[#f06548] text-white px-3 py-1 rounded text-[11px] shadow-sm hover:brightness-110">Remove</button>
+                          <div className="flex justify-end gap-1.5">
+                            {canEdit && (
+                              <button
+                                onClick={() => {
+                                  setMode("edit");
+                                  setSelectedItem(item);
+                                  setOpenModal(true);
+                                }}
+                                className="bg-[#299cdb] text-white px-2.5 py-1 rounded text-[11px] leading-none"
+                              >
+                                Edit
+                              </button>
+                            )}
+
+                            {canDelete && (
+                              <button
+                                onClick={() => {
+                                  setSelectedItem(item);
+                                  setOpenDelete(true);
+                                }}
+                                className="bg-[#f06548] text-white px-2.5 py-1 rounded text-[11px] leading-none"
+                              >
+                                Remove
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -214,6 +239,7 @@ export default function MenuPermissionTable() {
                         <span key={idx} className="bg-[#0ab39c15] text-[#0ab39c] px-2 py-0.5 rounded text-[10px] font-bold uppercase">{p}</span>
                       ))}
                     </div>
+
                     <div className="flex justify-end gap-1.5">
                       <button onClick={() => { setMode("edit"); setSelectedItem(item); setOpenModal(true); }} className="bg-[#299cdb] text-white px-2.5 py-1 rounded text-[11px] leading-none">Edit</button>
                       <button onClick={() => { setSelectedItem(item); setOpenDelete(true); }} className="bg-[#f06548] text-white px-2.5 py-1 rounded text-[11px] leading-none">Remove</button>
@@ -230,29 +256,28 @@ export default function MenuPermissionTable() {
               Showing <span className="font-semibold">{startIndex}</span> to <span className="font-semibold">{endIndex}</span> of <span className="font-semibold">{totalItems}</span> Results
             </span>
             <div className="flex items-center gap-1">
-              <button 
+              <button
                 disabled={currentPage === 1 || loading}
                 onClick={() => setCurrentPage(p => p - 1)}
                 className="p-1.5 border border-gray-200 dark:border-gray-700 rounded disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 <ChevronLeft size={16} />
               </button>
-              
+
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-1.5 rounded text-[13px] transition-all ${
-                    currentPage === page 
-                      ? "bg-[#405189] text-white shadow-md font-bold" 
-                      : "border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
-                  }`}
+                  className={`px-3 py-1.5 rounded text-[13px] transition-all ${currentPage === page
+                    ? "bg-[#405189] text-white shadow-md font-bold"
+                    : "border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
+                    }`}
                 >
                   {page}
                 </button>
               ))}
 
-              <button 
+              <button
                 disabled={currentPage >= totalPages || loading}
                 onClick={() => setCurrentPage(p => p + 1)}
                 className="p-1.5 border border-gray-200 dark:border-gray-700 rounded disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -265,23 +290,23 @@ export default function MenuPermissionTable() {
       </div>
 
       {/* FIXED: Passing menuIds to resolve TypeScript error */}
-      <MenuPermissionFormModal 
-        open={openModal} 
-        mode={mode} 
+      <MenuPermissionFormModal
+        open={openModal}
+        mode={mode}
         initialData={selectedItem ? {
           roleId: selectedItem.menuId.toString(),
           menuIds: [selectedItem.menuId], // Added this to fix the missing property error
           permissionIds: [] // You can pass selectedItem.permissionIds here if available
-        } : undefined} 
-        onClose={() => setOpenModal(false)} 
-        onSubmit={handleFormSubmit} 
+        } : undefined}
+        onClose={() => setOpenModal(false)}
+        onSubmit={handleFormSubmit}
       />
 
-      <ConfirmDeleteModal 
-        open={openDelete} 
-        loading={deleting} 
-        onClose={() => setOpenDelete(false)} 
-        onConfirm={confirmDelete} 
+      <ConfirmDeleteModal
+        open={openDelete}
+        loading={deleting}
+        onClose={() => setOpenDelete(false)}
+        onConfirm={confirmDelete}
       />
     </div>
   );

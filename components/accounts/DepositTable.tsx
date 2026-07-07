@@ -7,6 +7,7 @@ import { AccountService } from "@/lib/account";
 import toast from "react-hot-toast";
 import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import DepositFormModal from "./DepositsFormModal";
+import { usePermission } from "@/context/PermissionContext";
 
 export const getDepositStatusBadge = (status: number) => {
   switch (status) {
@@ -45,6 +46,7 @@ export default function DepositTable() {
     .split("T")[0];
 
   const [data, setData] = useState<DepositDto[]>([]);
+  const { hasPermission } = usePermission();
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -145,6 +147,11 @@ export default function DepositTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
+
+  const canAdd = hasPermission("CREATE.DEPOSIT");
+  const canEdit = hasPermission("EDIT.DEPOSIT");
+  const canDelete = hasPermission("DELETE.DEPOSIT");
+
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-4 sm:p-6 font-sans text-[#495057]">
       <div className="mx-auto max-w-7xl">
@@ -159,14 +166,14 @@ export default function DepositTable() {
         <div className="bg-white dark:bg-gray-800 border border-gray-200 rounded shadow-sm overflow-hidden">
           {/* TOOLBAR */}
           <div className="p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-            <button
-              onClick={() => {
-                toast.error("ka soo xaray customer page");
-              }}
-              className="w-full md:w-auto bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px] cursor-not-allowed"
-            >
-              + Add Deposit
-            </button>
+            {canAdd && (
+              <button
+                onClick={() => { setIsEdit(false); setOpenForm(true); }}
+                className="w-full md:w-auto bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px] hover:bg-[#089a86]"
+              >
+                + Add Deposit
+              </button>
+            )}
 
             {/* DATE FILTERS */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">

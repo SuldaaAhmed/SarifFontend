@@ -74,6 +74,11 @@ export default function TransactionTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
+
+  const canAdd = hasPermission("CREATE.TRANSACTION");
+  const canEdit = hasPermission("EDIT.TRANSACTION");
+  const canDelete = hasPermission("DELETE.TRANSACTION");
+
   const getPageNumbers = () => {
     const delta = 2;
     const range: number[] = [];
@@ -105,7 +110,9 @@ export default function TransactionTable() {
           </div>
 
           <div className="p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            <button className="bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px] opacity-80 cursor-not-allowed w-full sm:w-auto">+ Add Transaction</button>
+            {canAdd && (
+              <button className="bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px] opacity-80 cursor-not-allowed w-full sm:w-auto">+ Add Transaction</button>
+            )}
             <div className="relative w-full sm:w-64">
               <input type="text" placeholder="Search..." className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded text-[13px] focus:outline-none dark:bg-gray-900" value={search} onChange={(e) => setSearch(e.target.value)} />
               <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
@@ -145,8 +152,12 @@ export default function TransactionTable() {
                       <td className="p-3">{item.agencyName}</td>
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <button onClick={() => { setSelectedItem(item); setOpenModal(true); }} className="bg-[#299cdb] text-white px-3 py-1 rounded text-[11px]">View</button>
-                          <button onClick={() => { setSelectedItem(item); setOpenDelete(true); }} className="bg-[#f06548] text-white px-3 py-1 rounded text-[11px]">Remove</button>
+                          {canEdit && (
+                            <button onClick={() => { setSelectedItem(item); setOpenModal(true); }} className="bg-[#299cdb] text-white px-3 py-1 rounded text-[11px]">View</button>
+                          )}
+                          {canDelete && (
+                            <button onClick={() => { setSelectedItem(item); setOpenDelete(true); }} className="bg-[#f06548] text-white px-3 py-1 rounded text-[11px]">Remove</button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -192,8 +203,12 @@ export default function TransactionTable() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-                      <button onClick={() => { setSelectedItem(item); setOpenModal(true); }} className="bg-[#299cdb] text-white px-4 py-1.5 rounded text-[12px] flex-1">View</button>
-                      <button onClick={() => { setSelectedItem(item); setOpenDelete(true); }} className="bg-[#f06548] text-white px-4 py-1.5 rounded text-[12px] flex-1">Remove</button>
+                      {canEdit && (
+                        <button onClick={() => { setSelectedItem(item); setOpenModal(true); }} className="bg-[#299cdb] text-white px-4 py-1.5 rounded text-[12px] flex-1">View</button>
+                      )}
+                      {canDelete && (
+                        <button onClick={() => { setSelectedItem(item); setOpenDelete(true); }} className="bg-[#f06548] text-white px-4 py-1.5 rounded text-[12px] flex-1">Remove</button>
+                      )}
                     </div>
                   </div>
                 ))}

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { AccountService } from "@/lib/account";
 import toast from "react-hot-toast";
 import { Loader2, Calendar, Search } from "lucide-react";
+import { usePermission } from "@/context/PermissionContext";
 
 interface DailyCashReportDto {
   accountId: string;
@@ -19,7 +20,7 @@ export default function DailyCashReportTable() {
   const [data, setData] = useState<DailyCashReportDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-
+  const { hasPermission } = usePermission();
   const today = new Date().toISOString().split("T")[0];
   const [date, setDate] = useState(today);
 
@@ -93,6 +94,11 @@ export default function DailyCashReportTable() {
     (sum, item) => sum + Number(item.systemClosingCash || 0),
     0
   );
+
+  const canAdd = hasPermission("CREATE.DAILYCASHREPORT");
+  const canEdit = hasPermission("EDIT.DAILYCASHREPORT");
+  const canDelete = hasPermission("DELETE.DAILYCASHREPORT");
+
 
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-3 sm:p-4 md:p-6 font-sans text-[#495057]">
@@ -208,11 +214,10 @@ export default function DailyCashReportTable() {
                         </td>
 
                         <td
-                          className={`p-3 font-bold ${
-                            item.systemClosingCash < 0
+                          className={`p-3 font-bold ${item.systemClosingCash < 0
                               ? "text-red-600"
                               : "text-green-600"
-                          }`}
+                            }`}
                         >
                           {formatAmount(
                             item.systemClosingCash,
@@ -255,11 +260,10 @@ export default function DailyCashReportTable() {
                         </div>
 
                         <span
-                          className={`text-[14px] font-bold ${
-                            item.systemClosingCash < 0
+                          className={`text-[14px] font-bold ${item.systemClosingCash < 0
                               ? "text-red-600"
                               : "text-green-600"
-                          }`}
+                            }`}
                         >
                           {formatAmount(
                             item.systemClosingCash,
@@ -304,11 +308,10 @@ export default function DailyCashReportTable() {
                             Closing Cash
                           </p>
                           <p
-                            className={`text-[12px] font-bold ${
-                              item.systemClosingCash < 0
+                            className={`text-[12px] font-bold ${item.systemClosingCash < 0
                                 ? "text-red-600"
                                 : "text-green-600"
-                            }`}
+                              }`}
                           >
                             {formatAmount(
                               item.systemClosingCash,
@@ -364,13 +367,12 @@ function SummaryCard({
       </p>
 
       <p
-        className={`text-[16px] font-bold ${
-          positive
+        className={`text-[16px] font-bold ${positive
             ? "text-green-600"
             : negative
-            ? "text-red-600"
-            : "text-[#405189] dark:text-gray-200"
-        }`}
+              ? "text-red-600"
+              : "text-[#405189] dark:text-gray-200"
+          }`}
       >
         {Number(value || 0).toLocaleString(undefined, {
           minimumFractionDigits: 2,

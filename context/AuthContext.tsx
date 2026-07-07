@@ -24,8 +24,8 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   login: async () => false,
-  logout: async () => {},
-  refreshUser: async () => {},
+  logout: async () => { },
+  refreshUser: async () => { },
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -34,16 +34,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   // Fetch logged-in user
- const fetchUser = async (): Promise<boolean> => {
-  try {
-    const response = await api.get("/auth/me");
-    setUser(response.data);
-    return true;
-  } catch {
-    setUser(null);
-    return false;
-  }
-};
+  const fetchUser = async (): Promise<boolean> => {
+    try {
+      const response = await api.get("/auth/me");
+      setUser(response.data);
+      return true;
+    } catch {
+      setUser(null);
+      return false;
+    }
+  };
 
 
   // Login
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async (): Promise<void> => {
     try {
       await api.post("/User/logout");
-    } catch {}
+    } catch { }
 
     setUser(null);
     router.push("/auth/login");
@@ -81,14 +81,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Initial auth check
   useEffect(() => {
     const initAuth = async () => {
-      const path = window.location.pathname;
-
-      // ❗ Kaliya dashboard routes ayaa u baahan auth check
-      if (!path.startsWith("/dashboard")) {
-        setLoading(false);
-        return;
-      }
-
       await fetchUser();
       setLoading(false);
     };

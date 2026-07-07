@@ -5,6 +5,7 @@ import { AccountService } from "@/lib/account";
 import toast from "react-hot-toast";
 import { Search, Loader2 } from "lucide-react";
 import FundModalCash from "./FundingFormModal";
+import { usePermission } from "@/context/PermissionContext";
 
 interface FundingDto {
   transactionId: string;
@@ -19,6 +20,7 @@ interface FundingDto {
 
 export default function FundingTable() {
   const [data, setData] = useState<FundingDto[]>([]);
+  const { hasPermission } = usePermission();
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [openFundModal, setOpenFundModal] = useState(false);
@@ -91,6 +93,11 @@ export default function FundingTable() {
   const formatAmount = (amount: number, currencyCode: string) => {
     return `${currencyCode || ""} ${Number(amount || 0).toLocaleString()}`;
   };
+
+  const canAdd = hasPermission("CREATE.CASHFUNDING");
+  // const canEdit = hasPermission("EDIT.EXPENSE");
+  // const canDelete = hasPermission("DELETE.EXPENSE");
+
 
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-3 sm:p-4 md:p-6 font-sans text-[#495057]">
