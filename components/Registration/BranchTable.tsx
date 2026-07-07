@@ -117,9 +117,9 @@ export default function BranchTable() {
     return [...new Set(range)];
   };
 
-  const canAdd = hasPermission("CREATE.USER");
-  const canEdit = hasPermission("EDIT.USER");
-  const canDelete = hasPermission("DELETE.USER");
+  const canAdd = hasPermission("CREATE.BRANCHE");
+  const canEdit = hasPermission("EDIT.BRANCHE");
+  const canDelete = hasPermission("DELETE.BRANCHE");
 
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-3 sm:p-4 md:p-6 font-sans">

@@ -116,9 +116,9 @@ export default function AccountTable() {
     return [...new Set(range)];
   };
 
-  const canAdd = hasPermission("CREATE.USER");
-  const canEdit = hasPermission("EDIT.USER");
-  const canDelete = hasPermission("DELETE.USER");
+  const canAdd = hasPermission("CREATE.ACCOUNT");
+  const canEdit = hasPermission("EDIT.ACCOUNT");
+  const canDelete = hasPermission("DELETE.ACCOUNT");
 
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-3 sm:p-4 md:p-6 font-sans">

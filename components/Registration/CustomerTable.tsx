@@ -293,9 +293,9 @@ export default function CustomerTable() {
     return [...new Set(range)];
   };
 
-  const canAdd = hasPermission("CREATE.USER");
-  const canEdit = hasPermission("EDIT.USER");
-  const canDelete = hasPermission("DELETE.USER");
+  const canAdd = hasPermission("CREATE.CUSTOMER");
+  const canEdit = hasPermission("EDIT.CUSTOMER");
+  const canDelete = hasPermission("DELETE.CUSTOMER");
   const router = useRouter();
 
   return (

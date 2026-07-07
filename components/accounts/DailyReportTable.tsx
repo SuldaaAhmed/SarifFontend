@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { AccountService } from "@/lib/account";
 import toast from "react-hot-toast";
 import { Loader2, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { usePermission } from "@/context/PermissionContext";
 
 interface DailyReportDto {
   date: string;
@@ -15,7 +16,7 @@ interface DailyReportDto {
 export default function DailyReportTable() {
   const [data, setData] = useState<DailyReportDto[]>([]);
   const [loading, setLoading] = useState(false);
-
+  const { hasPermission } = usePermission();
   const today = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(today);
   const [toDate, setToDate] = useState(today);
@@ -62,6 +63,11 @@ export default function DailyReportTable() {
     if (totalPages > 1) range.push(totalPages);
     return [...new Set(range)];
   };
+
+  const canAdd = hasPermission("CREATE.ASSIGNUSERROLE");
+  const canEdit = hasPermission("EDIT.ASSIGNUSERROLE");
+  const canDelete = hasPermission("DELETE.ASSIGNUSERROLE");
+
 
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-3 sm:p-4 md:p-6 font-sans text-[#495057]">

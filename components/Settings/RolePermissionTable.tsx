@@ -108,9 +108,9 @@ export default function RolePermissionTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
-  const canAdd = hasPermission("CREATE.USER");
-  const canDelete = hasPermission("DELETE.USER");
-
+  const canAdd = hasPermission("CREATE.ROLEPERMISSION");
+  const canDelete = hasPermission("DELETE.ROLEPERMISSION");
+  const canEdit = hasPermission("EDIT.ROLEPERMISSION");
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-4 sm:p-6 font-sans">
       <div className="mx-auto max-w-7xl">
@@ -185,6 +185,19 @@ export default function RolePermissionTable() {
                       <td className="p-3"><span className="text-gray-700 dark:text-gray-300 font-medium">{item.userName}</span></td>
                       <td className="p-3">
                         <div className="flex items-center justify-center gap-2">
+                          {canEdit && (
+                            <button
+                              onClick={() => {
+                                setMode("edit");
+                                setSelectedItem(item);
+                                setOpenModal(true);
+                              }}
+                              className="bg-[#299cdb] text-white px-3 py-1 rounded text-[11px] flex items-center gap-1"
+                            >
+                              <Edit size={12} />
+                              Edit
+                            </button>
+                          )}
                           {canDelete && (
                             <button onClick={() => { setSelectedItem(item); setOpenDelete(true); }} className="bg-[#f06548] hover:bg-[#d95337] text-white px-3 py-1 rounded text-[11px] transition-colors">Remove</button>
                           )}

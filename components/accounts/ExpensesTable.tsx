@@ -7,6 +7,7 @@ import { AccountService } from "@/lib/account";
 import toast from "react-hot-toast";
 import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import DepositFormModal from "./ExpensesFormModal";
+import { usePermission } from "@/context/PermissionContext";
 
 export const getDepositStatusBadge = (status: number) => {
   switch (status) {
@@ -30,6 +31,7 @@ export default function ExpensesTable() {
   const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0];
 
   const [data, setData] = useState<ExpensesDto[]>([]);
+  const { hasPermission } = usePermission();
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -88,6 +90,10 @@ export default function ExpensesTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
+  const canAdd = hasPermission("CREATE.EXPENSE");
+  const canEdit = hasPermission("EDIT.EXPENSE");
+  const canDelete = hasPermission("DELETE.EXPENSE");
+
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-4 sm:p-6 font-sans text-[#495057]">
       <div className="mx-auto max-w-7xl">
@@ -98,12 +104,14 @@ export default function ExpensesTable() {
 
         <div className="bg-white dark:bg-gray-800 border border-gray-200 rounded shadow-sm overflow-hidden">
           <div className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-            <button
-              onClick={() => { setIsEdit(false); setOpenForm(true); }}
-              className="w-full md:w-auto bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px] hover:bg-[#089a86]"
-            >
-              + Add Expense
-            </button>
+            {canAdd && (
+              <button
+                onClick={() => { setIsEdit(false); setOpenForm(true); }}
+                className="w-full md:w-auto bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px] hover:bg-[#089a86]"
+              >
+                + Add Expense
+              </button>
+            )}
             <div className="w-full md:w-auto flex flex-col sm:flex-row items-center gap-2">
               <input type="date" value={fromDate} className="w-full sm:w-auto border p-2 rounded text-[13px]" onChange={(e) => setFromDate(e.target.value)} />
               <input type="date" value={toDate} className="w-full sm:w-auto border p-2 rounded text-[13px]" onChange={(e) => setToDate(e.target.value)} />

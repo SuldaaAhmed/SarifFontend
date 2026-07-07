@@ -6,6 +6,7 @@ import ConfirmDeleteModal from "../ui/Model/ConfirmDeleteModal";
 import { AccountService } from "@/lib/account";
 import toast from "react-hot-toast";
 import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { usePermission } from "@/context/PermissionContext";
 
 interface ExchangeDto {
   id: string;
@@ -28,6 +29,7 @@ export default function ExchangeTable() {
   const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0];
 
   const [data, setData] = useState<ExchangeDto[]>([]);
+  const { hasPermission } = usePermission();
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -122,6 +124,11 @@ export default function ExchangeTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
+
+  const canAdd = hasPermission("CREATE.EXCHANGE");
+  const canEdit = hasPermission("EDIT.EXCHANGE");
+  const canDelete = hasPermission("DELETE.EXCHANGE");
+
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-4 sm:p-6 font-sans text-[#495057]">
       <div className="mx-auto max-w-7xl">
@@ -132,12 +139,14 @@ export default function ExchangeTable() {
 
         <div className="bg-white dark:bg-gray-800 border border-gray-200 rounded shadow-sm overflow-hidden">
           <div className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-            <button
-              onClick={() => { setIsEdit(false); setOpenForm(true); }}
-              className="w-full md:w-auto bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px] hover:bg-[#089a86]"
-            >
-              + Add Exchange
-            </button>
+            {canAdd && (
+              <button
+                onClick={() => { setIsEdit(false); setOpenForm(true); }}
+                className="w-full md:w-auto bg-[#0ab39c] text-white px-4 py-2 rounded text-[13px] hover:bg-[#089a86]"
+              >
+                + Add Exchange
+              </button>
+            )}
             <div className="w-full md:w-auto flex flex-col sm:flex-row items-center gap-2">
               <input type="date" value={fromDate} className="w-full sm:w-auto border p-2 rounded text-[13px]" onChange={(e) => setFromDate(e.target.value)} />
               <input type="date" value={toDate} className="w-full sm:w-auto border p-2 rounded text-[13px]" onChange={(e) => setToDate(e.target.value)} />
@@ -181,15 +190,15 @@ export default function ExchangeTable() {
                       <td className="p-3">{formatMoney(item.fromAmount, item.fromCurrencyId)}</td>
                       <td className="p-3 text-[#0ab39c] font-bold">{formatMoney(item.toAmount, item.toCurrencyId)}</td>
                       <td className="p-3 text-[#0ab39c] font-bold">{formatMoney(item.netAmount, item.toCurrencyId)}</td>
-                    {/* Profit, symbol-ka lacagta market-ka */}
-<td className="p-3">
-  {formatMoney(item.fee || 0, item.toCurrencyId)}
-</td>
+                      {/* Profit, symbol-ka lacagta market-ka */}
+                      <td className="p-3">
+                        {formatMoney(item.fee || 0, item.toCurrencyId)}
+                      </td>
 
-{/* USD, mar walba dollar */}
-<td className="p-3">
-  {formatMoney(item.profit || 0, 1)}
-</td>
+                      {/* USD, mar walba dollar */}
+                      <td className="p-3">
+                        {formatMoney(item.profit || 0, 1)}
+                      </td>
                       <td className="p-3">
                         {new Date(item.createdAt).toLocaleDateString("en-US", {
                           month: "2-digit",
@@ -199,18 +208,22 @@ export default function ExchangeTable() {
                       </td>
                       <td className="p-3 text-center">
                         <div className="flex gap-2 justify-center">
-                          <button
-                            onClick={() => handleEdit(item)}
-                            className="bg-[#299cdb] text-white px-3 py-1 rounded text-[11px]"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => { setSelectedItem(item); setOpenDelete(true); }}
-                            className="bg-[#f06548] text-white px-3 py-1 rounded text-[11px]"
-                          >
-                            Remove
-                          </button>
+                          {canEdit && (
+                            <button
+                              onClick={() => handleEdit(item)}
+                              className="bg-[#299cdb] text-white px-3 py-1 rounded text-[11px]"
+                            >
+                              Edit
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              onClick={() => { setSelectedItem(item); setOpenDelete(true); }}
+                              className="bg-[#f06548] text-white px-3 py-1 rounded text-[11px]"
+                            >
+                              Remove
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -271,20 +284,23 @@ export default function ExchangeTable() {
                   </div>
 
                   {/* Buttons */}
-                  <div className="flex justify-end gap-1.5">
-                    <button
-                      onClick={() => handleEdit(item)}
-                      className="bg-[#299cdb] text-white px-2.5 py-1 rounded text-[11px] leading-none"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => { setSelectedItem(item); setOpenDelete(true); }}
-                      className="bg-[#f06548] text-white px-2.5 py-1 rounded text-[11px] leading-none"
-                    >
+                  {/* <div className="flex justify-end gap-1.5">
+                    {canEdit && (
+                      <button
+                        onClick={() => handleEdit(item)}
+                        className="bg-[#299cdb] text-white px-2.5 py-1 rounded text-[11px] leading-none"
+                      >
+                        Edit
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        onClick={() => { setSelectedItem(item); setOpenDelete(true); }}
+                        className="bg-[#f06548] text-white px-2.5 py-1 rounded text-[11px] leading-none"
+                      >
                       Remove
                     </button>
-                  </div>
+                  </div> */}
 
                 </div>
               ))}

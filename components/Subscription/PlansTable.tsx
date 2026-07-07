@@ -87,6 +87,11 @@ export default function PlansTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
+
+  const canAdd = hasPermission("CREATE.PLAN");
+  const canEdit = hasPermission("EDIT.PLAN");
+  const canDelete = hasPermission("DELETE.PLAN");
+
   const getPageNumbers = () => {
     const delta = 2;
     const range: number[] = [];
@@ -118,9 +123,11 @@ export default function PlansTable() {
           </div>
 
           <div className="p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            <button onClick={() => { setMode("add"); setSelectedItem(null); setOpenModal(true); }} className="bg-[#0ab39c] hover:bg-[#099885] text-white px-4 py-2 rounded text-[13px] flex items-center gap-1 transition-all w-full sm:w-auto justify-center">
-              <span className="text-lg">+</span> Add Plan
-            </button>
+            {canAdd && (
+              <button onClick={() => { setMode("add"); setSelectedItem(null); setOpenModal(true); }} className="bg-[#0ab39c] hover:bg-[#099885] text-white px-4 py-2 rounded text-[13px] flex items-center gap-1 transition-all w-full sm:w-auto justify-center">
+                <span className="text-lg">+</span> Add Plan
+              </button>
+            )}
             <div className="relative w-full sm:w-64">
               <input type="text" placeholder="Search plan..." className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded text-[13px] focus:outline-none focus:border-[#405189] dark:bg-gray-900 dark:text-white" value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
               <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
@@ -162,8 +169,12 @@ export default function PlansTable() {
                       </td>
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <button onClick={() => { setMode("edit"); setSelectedItem(item); setOpenModal(true); }} className="bg-[#299cdb] text-white px-3 py-1 rounded text-[11px]">Edit</button>
-                          <button onClick={() => { setSelectedItem(item); setOpenDelete(true); }} className="bg-[#f06548] text-white px-3 py-1 rounded text-[11px]">Remove</button>
+                          {canEdit && (
+                            <button onClick={() => { setMode("edit"); setSelectedItem(item); setOpenModal(true); }} className="bg-[#299cdb] text-white px-3 py-1 rounded text-[11px]">Edit</button>
+                          )}
+                          {canDelete && (
+                            <button onClick={() => { setSelectedItem(item); setOpenDelete(true); }} className="bg-[#f06548] text-white px-3 py-1 rounded text-[11px]">Remove</button>
+                          )}
                         </div>
                       </td>
                     </tr>

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { GoogleLogin } from "@react-oauth/google";
 import { AuthService } from "@/lib/auth";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
@@ -27,18 +26,22 @@ export default function LoginPage() {
   useEffect(() => {
     if (!authLoading && user) {
       const role = user.role as Role;
-      router.push(role === "User" ? "/" : "/dashboard");
+
+      switch (role) {
+        case "Administrator":
+        case "Manager":
+        case "Employee":
+        case "User":
+        default:
+          router.replace("/dashboard");
+          break;
+      }
     }
   }, [user, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // CILAD LA SAXAY: validation-kani wuxuu ku qornaa component body-ga —
-    // render kasta ayuu socon jiray, render-ka 1aad `return;` ayuu samayn
-    // jiray, component-kuna wuxuu soo celin jiray `undefined` -> crash
-    // ("Nothing was returned from render") + Rules of Hooks jebin.
-    // Meeshiisa saxda ah waa halkan: submit marka la gujiyo KALIYA.
     const value = email.trim();
     if (!emailRegex.test(value) && !usernameRegex.test(value)) {
       toast.error("Please enter a valid email address or username.");
@@ -239,28 +242,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="my-7 flex items-center gap-4 text-gray-300">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-[11px] font-semibold uppercase tracking-widest text-gray-400">Or continue with</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
 
-          <div className="flex justify-center">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => toast.error("Google login failed.")}
-              theme="outline"
-              shape="pill"
-              width="320"
-            />
-          </div>
-
-          <p className="text-center mt-9 text-[14px] text-gray-500">
-            New here?{" "}
-            <a href="/auth/register" className="text-[#090044] font-semibold hover:text-[#109489] transition-colors">
-              Create an account
-            </a>
-          </p>
         </div>
       </main>
     </div>

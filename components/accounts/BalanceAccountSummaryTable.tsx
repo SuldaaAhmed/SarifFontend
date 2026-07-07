@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { AccountService } from "@/lib/account";
 import toast from "react-hot-toast";
 import { Loader2, ChevronLeft, ChevronRight, Filter, Calendar } from "lucide-react";
+import { usePermission } from "@/context/PermissionContext";
 
 interface AccountBalanceSummaryDto {
   accountId: string;
@@ -17,7 +18,7 @@ interface AccountBalanceSummaryDto {
 export default function BalanceSummaryTable() {
   const [data, setData] = useState<AccountBalanceSummaryDto[]>([]);
   const [loading, setLoading] = useState(false);
-
+  const { hasPermission } = usePermission();
   const [accountType, setAccountType] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
@@ -64,6 +65,11 @@ export default function BalanceSummaryTable() {
 
   const accountTypes = ["Cash", "Bank", "Wallet", "Customer", "Loan", "Expense", "Revenue", "Capital", "RECEIVABLE", "PAYABLE"];
 
+  const canAdd = hasPermission("CREATE.BALANCEACCOUNTSUMMARY");
+  const canEdit = hasPermission("EDIT.BALANCEACCOUNTSUMMARY");
+  const canDelete = hasPermission("DELETE.BALANCEACCOUNTSUMMARY");
+
+
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-3 sm:p-4 md:p-6 font-sans text-[#495057]">
       <div className="mx-auto max-w-7xl">
@@ -83,6 +89,7 @@ export default function BalanceSummaryTable() {
                 onChange={(e) => setAccountType(e.target.value)}
                 className="bg-transparent text-[13px] outline-none w-full lg:min-w-[120px] dark:text-gray-300"
               >
+                {/* {canAdd && <option value="">All Types</option>} */}
                 <option value="">All Types</option>
                 {accountTypes.map(type => <option key={type} value={type}>{type}</option>)}
               </select>
@@ -128,7 +135,7 @@ export default function BalanceSummaryTable() {
                   <tr>
                     <th className="p-3">Account Name</th>
                     <th className="p-3">Currency</th>
-                    <th className="p-3">Total Out</th> 
+                    <th className="p-3">Total Out</th>
                     <th className="p-3">Total In</th>
                     <th className="p-3">Balance</th>
                   </tr>

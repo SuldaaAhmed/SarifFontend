@@ -6,7 +6,7 @@ import ConfirmDeleteModal from "../ui/Model/ConfirmDeleteModal";
 import { SubscriptionService } from "@/lib/subcription";
 import toast from "react-hot-toast";
 import { usePermission } from "@/context/PermissionContext";
-import { Search, Loader2, ChevronLeft, ChevronRight, Calendar, User } from "lucide-react";
+import { Search, Loader2, ChevronLeft, ChevronRight, Calendar, User, Edit } from "lucide-react";
 
 interface SubscriptionRecord {
   id: string;
@@ -99,6 +99,10 @@ export default function SubscriptionTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
+  const canAdd = hasPermission("CREATE.SUBSCRIPTIOssN");
+  const canEdit = hasPermission("EDIT.SUBSCRIPTIssON");
+  const canDelete = hasPermission("DELETE.SUBSCRIPTssION");
+
   const getPageNumbers = () => {
     const delta = 2;
     const range: number[] = [];
@@ -130,9 +134,12 @@ export default function SubscriptionTable() {
           </div>
 
           <div className="p-3 sm:p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            <button onClick={() => { setMode("add"); setSelectedItem(null); setOpenModal(true); }} className="bg-[#0ab39c] hover:bg-[#099885] text-white px-4 py-2 rounded text-[13px] flex items-center gap-1 transition-all w-full sm:w-auto justify-center">
-              <span className="text-lg">+</span> Add Subscription
-            </button>
+            {canAdd && (
+              <button onClick={() => { setMode("add"); setSelectedItem(null); setOpenModal(true); }} className="bg-[#0ab39c] hover:bg-[#099885] text-white px-4 py-2 rounded text-[13px] flex items-center gap-1 transition-all w-full sm:w-auto justify-center">
+                <span className="text-lg">+</span> Add Subscription
+              </button>
+            )}
+
             <div className="relative w-full sm:w-64">
               <input type="text" placeholder="Search agency or plan..." className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-700 rounded text-[13px] focus:outline-none focus:border-[#405189] dark:bg-gray-900 dark:text-white" value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }} />
               <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
@@ -167,14 +174,14 @@ export default function SubscriptionTable() {
                       <td className="p-3">
                         <div className="flex flex-col">
                           <span className="font-semibold text-[#405189] dark:text-blue-400">{item.agencyName}</span>
-                          <span className="text-[10px] text-gray-400 flex items-center gap-1 mt-0.5"><User size={10}/> {item.userName || "No User"}</span>
+                          <span className="text-[10px] text-gray-400 flex items-center gap-1 mt-0.5"><User size={10} /> {item.userName || "No User"}</span>
                         </div>
                       </td>
                       <td className="p-3"><span className="bg-[#40518915] text-[#405189] px-2 py-0.5 rounded text-[11px] font-bold">{item.planName}</span></td>
                       <td className="p-3 text-gray-500">
                         <div className="flex flex-col gap-0.5 text-[11px]">
-                          <span className="flex items-center gap-1"><Calendar size={12} className="text-green-500"/> {new Date(item.startDate).toLocaleDateString()}</span>
-                          <span className="flex items-center gap-1"><Calendar size={12} className="text-red-500"/> {new Date(item.endDate).toLocaleDateString()}</span>
+                          <span className="flex items-center gap-1"><Calendar size={12} className="text-green-500" /> {new Date(item.startDate).toLocaleDateString()}</span>
+                          <span className="flex items-center gap-1"><Calendar size={12} className="text-red-500" /> {new Date(item.endDate).toLocaleDateString()}</span>
                         </div>
                       </td>
                       <td className="p-3">
@@ -182,8 +189,31 @@ export default function SubscriptionTable() {
                       </td>
                       <td className="p-3 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <button onClick={() => { setMode("edit"); setSelectedItem(item); setOpenModal(true); }} className="bg-[#299cdb] text-white px-3 py-1 rounded text-[11px]">Edit</button>
-                          <button onClick={() => { setSelectedItem(item); setOpenDelete(true); }} className="bg-[#f06548] text-white px-3 py-1 rounded text-[11px]">Remove</button>
+                          {canEdit && (
+                            <button
+                              onClick={() => {
+                                setMode("edit");
+                                setSelectedItem(item);
+                                setOpenModal(true);
+                              }}
+                              className="bg-[#299cdb] text-white px-3 py-1 rounded text-[11px] flex items-center gap-1"
+                            >
+                              <Edit size={12} />
+                              Edit
+                            </button>
+                          )}
+
+                          {canDelete && (
+                            <button
+                              onClick={() => {
+                                setSelectedItem(item);
+                                setOpenDelete(true);
+                              }}
+                              className="bg-[#f06548] text-white px-3 py-1 rounded text-[11px]"
+                            >
+                              Remove
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -219,15 +249,15 @@ export default function SubscriptionTable() {
                       </div>
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-[#878a99] font-medium mb-0.5">User</p>
-                        <p className="text-[12px] text-[#495057] dark:text-gray-300 flex items-center gap-1"><User size={11}/> {item.userName || "—"}</p>
+                        <p className="text-[12px] text-[#495057] dark:text-gray-300 flex items-center gap-1"><User size={11} /> {item.userName || "—"}</p>
                       </div>
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-[#878a99] font-medium mb-0.5">Start</p>
-                        <p className="text-[12px] text-[#495057] dark:text-gray-300 flex items-center gap-1"><Calendar size={11} className="text-green-500"/> {new Date(item.startDate).toLocaleDateString()}</p>
+                        <p className="text-[12px] text-[#495057] dark:text-gray-300 flex items-center gap-1"><Calendar size={11} className="text-green-500" /> {new Date(item.startDate).toLocaleDateString()}</p>
                       </div>
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-[#878a99] font-medium mb-0.5">End</p>
-                        <p className="text-[12px] text-[#495057] dark:text-gray-300 flex items-center gap-1"><Calendar size={11} className="text-red-500"/> {new Date(item.endDate).toLocaleDateString()}</p>
+                        <p className="text-[12px] text-[#495057] dark:text-gray-300 flex items-center gap-1"><Calendar size={11} className="text-red-500" /> {new Date(item.endDate).toLocaleDateString()}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">

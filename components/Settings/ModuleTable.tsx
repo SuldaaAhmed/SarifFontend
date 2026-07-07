@@ -97,9 +97,9 @@ export default function ModuleTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
-  const canAdd = hasPermission("CREATE.USER");
-  const canEdit = hasPermission("EDIT.USER");
-  const canDelete = hasPermission("DELETE.USER");
+  const canAdd = hasPermission("CREATE.MODULE");
+  const canEdit = hasPermission("EDIT.MODULE");
+  const canDelete = hasPermission("DELETE.MODULE");
 
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-4 sm:p-6 font-sans">

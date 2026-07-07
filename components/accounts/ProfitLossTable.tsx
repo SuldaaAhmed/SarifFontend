@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { AccountService } from "@/lib/account";
 import toast from "react-hot-toast";
 import { Loader2, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { usePermission } from "@/context/PermissionContext";
 
 interface ProfitDetail {
   accountName: string;
@@ -26,7 +27,7 @@ interface ProfitLossDto {
 export default function ProfitLossTable() {
   const [data, setData] = useState<ProfitLossDto | null>(null);
   const [loading, setLoading] = useState(false);
-
+  const { hasPermission } = usePermission();
   const now = new Date();
   const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
   const today = now.toISOString().split('T')[0];
@@ -56,6 +57,12 @@ export default function ProfitLossTable() {
   const totalPages = data?.details.totalPages || 1;
   const startIndex = (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
+
+
+  const canAdd = hasPermission("CREATE.ASSIGNUSERROLE");
+  const canEdit = hasPermission("EDIT.ASSIGNUSERROLE");
+  const canDelete = hasPermission("DELETE.ASSIGNUSERROLE");
+
 
   useEffect(() => {
     loadData(1, fromDate, toDate);
