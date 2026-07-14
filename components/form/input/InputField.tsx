@@ -5,6 +5,7 @@ export interface InputProps {
   id?: string;
   name?: string;
   placeholder?: string;
+  autoComplete?: string;
 
   /** Controlled input */
   value?: string | number;
@@ -30,6 +31,7 @@ const Input: FC<InputProps> = ({
   id,
   name,
   placeholder,
+  autoComplete,
   value,
   defaultValue,
   onChange,
@@ -72,6 +74,7 @@ const Input: FC<InputProps> = ({
         id={id}
         name={name}
         placeholder={placeholder}
+        autoComplete={autoComplete}
         value={value}
         defaultValue={defaultValue}
         onChange={onChange}
