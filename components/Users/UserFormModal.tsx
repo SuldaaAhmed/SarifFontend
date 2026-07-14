@@ -3,7 +3,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
-import { X, Save, EyeOff, Eye } from "lucide-react";
+import { SetupService } from "@/lib/setup";
+import { X, Save, EyeOff, Eye, Loader2 } from "lucide-react";
 
 export interface UserFormData {
   fullName: string;
@@ -11,7 +12,14 @@ export interface UserFormData {
   phone: string;
   gender: string;
   password: string;
+  agencyName?: string;
   confirmPassword: string;
+}
+
+// ── Agency dto: la isticmaalo dropdown-ka Agency Name ──
+interface AgencyDto {
+  id: string;
+  name: string;
 }
 
 interface Props {
@@ -22,27 +30,27 @@ interface Props {
   onSubmit: (data: UserFormData) => void;
 }
 
-const emptyForm: UserFormData = {
+const createEmptyForm = (): UserFormData => ({
   fullName: "",
   email: "",
   phone: "",
   gender: "",
   password: "",
   confirmPassword: "",
-};
+  agencyName: "",
+});
 
 export default function UserFormModal({ open, mode, initialData, onClose, onSubmit }: Props) {
-  const [form, setForm] = useState<UserFormData>(emptyForm);
+  const [form, setForm] = useState<UserFormData>(() => createEmptyForm());
   const [errors, setErrors] = useState<Partial<Record<keyof UserFormData, string>>>({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // ── formKey: number kordha reset kasta. key={formKey} ayaa body-ga saaran,
-  //    markaa reset kasta React wuxuu DOM inputs-ka BURBURIYAA oo dhisaa kuwo
-  //    cusub oo faaruq ah. Tani waxay qabataa xitaa haddii:
-  //    - Input component-ku uncontrolled yahay (value prop-ka ma gudbiyo)
-  //    - Browser autofill uu wax ku dul qoray DOM-ka
+  // ── Agencies: state-ka + loading-ka gaarka ah ──
+  const [agencies, setAgencies] = useState<AgencyDto[]>([]);
+  const [loadingAgencies, setLoadingAgencies] = useState(false);
+
   const [formKey, setFormKey] = useState(0);
 
   // Rule kasta si gaar ah ayaa loo hubinayaa — checklist-ka ayaa isticmaalaya
@@ -53,21 +61,17 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
     number: /\d/.test(form.password),
     special: /[!@#$%^&*(),.?":{}|<>]/.test(form.password),
   };
-  // isStrongPassword waxaa laga soo saaray isla rules-kan —
-  // labo regex oo kala duwan ma jiraan, markaa waligood iskuma khilaafaan
   const isStrongPassword = Object.values(passwordRules).every(Boolean);
 
   // ── Reset helper: hal meel oo lagu safeeyo form-ka + dhammaan UI state-yada la xiriira ──
   const resetForm = useCallback(() => {
-    setForm(emptyForm);
+    setForm(createEmptyForm());
     setErrors({});
     setShowPassword(false);
     setShowConfirmPassword(false);
     setFormKey((k) => k + 1); // force remount — DOM inputs dhammaantood faaruq
   }, []);
 
-  // ── Bilaabista modal-ka: haddii "edit" ah waxaa lagu buuxinayaa initialData,
-  //    haddii "add" ah mar walba wuu bilaabmaa faaruq ──
   useEffect(() => {
     if (open) {
       if (mode === "edit" && initialData) {
@@ -76,6 +80,7 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
           phone: initialData.phone ?? "",
           password: "",
           confirmPassword: "",
+          agencyName: initialData.agencyName ?? "",
         });
         setErrors({});
         setShowPassword(false);
@@ -89,6 +94,34 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
       resetForm();
     }
   }, [mode, initialData, open, resetForm]);
+
+  // ── Soo qaadista Agencies-ka: waxay dhacdaa marka modal-ku furmo ──
+  useEffect(() => {
+    if (!open) return;
+
+    let cancelled = false;
+
+    const fetchAgencies = async () => {
+      setLoadingAgencies(true);
+      try {
+        // pageSize weyn si dropdown-ku u helo dhammaan agencies-ka (isla structure-ka AgencyTable)
+        const res = await SetupService.getAgencies(1, 100);
+        const apiResponse = res.data?.data;
+        if (!cancelled) {
+          setAgencies(apiResponse?.data || []);
+        }
+      } catch {
+        if (!cancelled) setAgencies([]);
+      } finally {
+        if (!cancelled) setLoadingAgencies(false);
+      }
+    };
+
+    fetchAgencies();
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
 
   const update = (k: keyof UserFormData, v: string) => {
     setForm((p) => ({ ...p, [k]: v }));
@@ -112,7 +145,11 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
     }
 
     if (mode === "add") {
-      if (form.password.length < 6) e.password = "Minimum 6 characters";
+      // FIX: horey wuxuu ahaa `length < 6` — checklist-ka oo dhan ayaa hadda
+      // loo baahan yahay (8+ chars, uppercase, lowercase, number, special)
+      if (!isStrongPassword) {
+        e.password = "Password must meet all requirements below";
+      }
       if (form.password !== form.confirmPassword) e.confirmPassword = "Passwords mismatch";
     }
 
@@ -178,7 +215,8 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
         </div>
 
         {/* BODY — key={formKey}: reset kasta DOM inputs-ka waa la burburiyaa,
-            kuwa cusub oo faaruq ah ayaa la dhisaa */}
+            kuwa cusub oo faaruq ah ayaa la dhisaa.
+            AUTOFILL FIX: autoComplete="off" container-ka oo dhan */}
         {/* RESPONSIVE: p-5 sm:p-6 — padding yar mobile-ka */}
         <div key={formKey} className="p-5 sm:p-6 space-y-4">
 
@@ -190,6 +228,8 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
                 value={form.fullName}
                 onChange={(e) => update("fullName", e.target.value)}
                 placeholder="Full Name"
+                autoComplete="off"
+                name={`fullname-${formKey}`}
               />
             </Field>
 
@@ -199,11 +239,13 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
                 value={form.email}
                 onChange={(e) => update("email", e.target.value)}
                 placeholder="Email or Username"
+                autoComplete="on"
+                name={`email-${formKey}`}
               />
             </Field>
           </div>
 
-          {/* Row 2 — Phone + Gender */}
+          {/* Row 2 — Phone + Gender + Agency */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="Phone Number" error={errors.phone}>
               <Input
@@ -216,6 +258,8 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
                   )
                 }
                 placeholder="Phone"
+                autoComplete="off"
+                name={`phone-${formKey}`}
               />
             </Field>
 
@@ -224,6 +268,31 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
                 value={form.gender}
                 onChange={(e) => update("gender", e.target.value)}
               />
+            </Field>
+
+            <Field label="Agency Name">
+              <div className="relative">
+                <select
+                  value={form.agencyName}
+                  onChange={(e) => update("agencyName", e.target.value)}
+                  disabled={loadingAgencies}
+                  className="w-full rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-60"
+                >
+                  <option value="">
+                    {loadingAgencies ? "Loading agencies..." : "Select Agency"}
+                  </option>
+
+                  {agencies.map((agency) => (
+                    <option key={agency.id} value={agency.name}>
+                      {agency.name}
+                    </option>
+                  ))}
+                </select>
+
+                {loadingAgencies && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-gray-400" />
+                )}
+              </div>
             </Field>
           </div>
 
@@ -235,11 +304,18 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
               error={errors.password}
             >
               <div className="relative">
+                {/* AUTOFILL FIX:
+                    - autoComplete="new-password" — browser-ka wuxuu ogaadaa
+                      in tani tahay password CUSUB, mana buuxiyo password kaydsan
+                    - name dynamic ah (formKey) — browser-ku ma aqoonsado field-ka
+                      si uu password ugu keydiyo/soo celiyo */}
                 <Input
                   type={showPassword ? "text" : "password"}
                   value={form.password}
                   onChange={(e) => update("password", e.target.value)}
                   placeholder="••••••••"
+                  autoComplete="new-password"
+                  name={`new-user-password-${formKey}`}
                 />
 
                 <button
@@ -256,7 +332,10 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
               </div>
 
               {/* CHECKLIST — rule kasta wuxuu leeyahay ✓/✗ u gaar ah,
-                  si user-ku u arko midka qaldan */}
+                  si user-ku u arko midka qaldan.
+                  Wuxuu muuqdaa KALIYA marka form.password (React state) buuxo —
+                  autofill hadda ma buuxin karo state-ka, marka modal furan
+                  wuu faaruq yahay */}
               {form.password && (
                 <div className="mt-2 space-y-1">
                   <Rule valid={passwordRules.length} text="At least 8 characters" />
@@ -280,8 +359,12 @@ export default function UserFormModal({ open, mode, initialData, onClose, onSubm
                 <Input
                   type={showConfirmPassword ? "text" : "password"}
                   value={form.confirmPassword}
-                  onChange={(e) => update("confirmPassword", e.target.value)}
+                  onChange={(e) =>
+                    update("confirmPassword", e.target.value)
+                  }
                   placeholder="••••••••"
+                  autoComplete="new-password"
+                  name={`confirm-user-password-${formKey}`}
                 />
 
                 <button

@@ -36,6 +36,17 @@ const emptyForm: RolePermissionFormData = {
   permissionIds: [],
 };
 
+const normalizeMenuIds = (value: RolePermissionFormData["menuIds"] | undefined) =>
+  Array.isArray(value) ? value.map(String) : [];
+
+const normalizePermissionIds = (value: RolePermissionFormData["permissionIds"] | undefined) =>
+  Array.isArray(value)
+    ? value.map((id) => Number(id)).filter((id) => !Number.isNaN(id))
+    : [];
+
+const isItemSelected = (id: string | number, selected: Array<string | number>) =>
+  selected.some((item) => String(item) === String(id));
+
 export default function MenuPermissionFormModal({ open, mode, initialData, onClose, onSubmit }: Props) {
   const [form, setForm] = useState<RolePermissionFormData>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<keyof RolePermissionFormData, string>>>({});
@@ -84,8 +95,8 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
 
         setForm({
           roleId: String(initialData.roleId ?? ""),
-          menuIds: rawMenuIds.map(String),
-          permissionIds: (initialData.permissionIds || []).map((id) => Number(id)),
+          menuIds: normalizeMenuIds(rawMenuIds),
+          permissionIds: normalizePermissionIds(initialData.permissionIds),
         });
       } else {
         setForm(emptyForm);
@@ -103,16 +114,14 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
   ) => {
     setForm((prev) => {
       const currentList = prev[field] as (string | number)[];
-
-      const exists = currentList.some(
-        (item) => String(item) === String(id)
-      );
+      const normalizedId = field === "permissionIds" ? Number(id) : String(id);
+      const exists = currentList.some((item) => String(item) === String(normalizedId));
 
       return {
         ...prev,
         [field]: exists
-          ? currentList.filter((item) => String(item) !== String(id))
-          : [...currentList, id],
+          ? currentList.filter((item) => String(item) !== String(normalizedId))
+          : [...currentList, normalizedId],
       };
     });
   };
@@ -182,8 +191,7 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
               </div>
               <div className="h-[250px] overflow-y-auto p-2 space-y-1 custom-scrollbar">
                 {fetching ? <LoadingState /> : filteredMenus.map((menu) => {
-                  {/* FIX: String comparison labada dhinacba */ }
-                  const active = form.menuIds.map(String).includes(String(menu.id));
+                  const active = isItemSelected(menu.id, form.menuIds);
                   return (
                     <SelectionItem
                       key={menu.id}
@@ -212,10 +220,7 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
               </div>
               <div className="h-[250px] overflow-y-auto p-2 space-y-1 custom-scrollbar">
                 {fetching ? <LoadingState /> : filteredPermissions.map((perm) => {
-                  {/* FIX: Number comparison labada dhinacba */ }
-                  const active = form.permissionIds.some(
-                    (id) => String(id) === String(perm.id)
-                  );
+                  const active = isItemSelected(perm.id, form.permissionIds);
                   return (
                     <SelectionItem
                       key={perm.id}
@@ -255,18 +260,23 @@ function SelectionItem({ title, subtitle, active, onClick }: { title: string; su
   return (
     <div
       onClick={onClick}
-      className={`group flex items-center justify-between px-3 py-2 rounded-md cursor-pointer transition-all border
-        ${active ? "bg-[#405189]/10 border-[#405189]/20" : "hover:bg-gray-50 dark:hover:bg-gray-800/50 border-transparent"}
+      role="checkbox"
+      aria-checked={active}
+      className={`group flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer transition-all border
+        ${active
+          ? "bg-[#405189]/10 border-[#405189]/30 shadow-sm"
+          : "hover:bg-gray-50 dark:hover:bg-gray-800/50 border-transparent"
+        }
       `}
     >
       <div className="flex flex-col overflow-hidden">
-        <span className={`text-[12px] font-bold truncate ${active ? "text-[#405189]" : "text-gray-700 dark:text-gray-300"}`}>
+        <span className={`text-[12px] font-semibold truncate ${active ? "text-[#405189]" : "text-gray-700 dark:text-gray-300"}`}>
           {title}
         </span>
         {subtitle && <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{subtitle}</span>}
       </div>
-      <div className={`shrink-0 w-4 h-4 rounded flex items-center justify-center border transition-all
-        ${active ? "bg-[#405189] border-[#405189]" : "border-gray-300 dark:border-gray-600"}
+      <div className={`shrink-0 w-5 h-5 rounded flex items-center justify-center border transition-all
+        ${active ? "bg-[#405189] border-[#405189]" : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"}
       `}>
         {active && <Check size={10} className="text-white" strokeWidth={4} />}
       </div>
