@@ -610,9 +610,9 @@ function ProfileMenu({
   const initial = user?.email?.[0]?.toUpperCase() || "A";
 
   const menuItems = [
-    { icon: User, label: "My Profile", href: "/profile" },
-    { icon: Settings, label: "Settings", href: "/settings" },
-    { icon: Shield, label: "Security", href: "/security" },
+    { icon: User, label: "My Profile", href: "#" },
+    { icon: Settings, label: "Settings", href: "#" },
+    { icon: Shield, label: "Security", href: "#" },
   ];
 
   return (

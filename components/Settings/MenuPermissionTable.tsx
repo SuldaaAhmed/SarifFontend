@@ -33,6 +33,8 @@ export default function MenuPermissionTable() {
   const [selectedItem, setSelectedItem] = useState<MenuPermissionDto | null>(null);
   const [openDelete, setOpenDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  console.log("selectedItem", selectedItem);
+  console.log("menuId", selectedItem?.menuId);
 
   // --- GET Data ---
   const loadData = useCallback(async (page: number, searchQuery: string) => {
@@ -92,15 +94,22 @@ export default function MenuPermissionTable() {
 
   const confirmDelete = async () => {
     if (!selectedItem) return;
+
+    console.log("selectedItem:", selectedItem);
+    console.log("menuId:", selectedItem.menuId);
+
     setDeleting(true);
+
     try {
-      // Per Swagger: ID is required in the PATH
       await SetupService.RemoveMenuPermissions(selectedItem.menuId);
+
       toast.success("Permissions removed");
       setOpenDelete(false);
       loadData(currentPage, search);
-    } catch {
-      toast.error("Delete failed");
+
+    } catch (error: any) {
+      console.log(error.response);
+      toast.error(error.response?.data?.message || "Delete failed");
     } finally {
       setDeleting(false);
     }

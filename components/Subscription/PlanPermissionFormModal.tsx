@@ -52,7 +52,7 @@ export default function PlanPermissionFormModal({ open, mode, initialData, onClo
       try {
         const [planRes, permRes] = await Promise.all([
           SubscriptionService.getPlans(),
-          SetupService.getPermissions() 
+          SetupService.getPermission() 
         ]);
         
         // SAXID: API-gaagu xogta wuxuu ku soo celinayaa res.data.data.data (sida ku cad JSON-kaaga)
