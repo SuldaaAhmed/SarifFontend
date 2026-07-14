@@ -13,7 +13,7 @@ interface MenuDto {
 interface PermissionDto {
   id: number;
   name: string;
-  keyName: string; 
+  keyName: string;
 }
 
 export interface RolePermissionFormData {
@@ -40,7 +40,7 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
   const [form, setForm] = useState<RolePermissionFormData>(emptyForm);
   const [errors, setErrors] = useState<Partial<Record<keyof RolePermissionFormData, string>>>({});
   const [loading, setLoading] = useState(false);
-  
+
   const [menus, setMenus] = useState<MenuDto[]>([]);
   const [permissions, setPermissions] = useState<PermissionDto[]>([]);
   const [searchMenu, setSearchMenu] = useState("");
@@ -53,15 +53,15 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
       try {
         const [menuRes, permRes] = await Promise.all([
           SetupService.getMenusSingle(),
-          SetupService.getPermission() 
+          SetupService.getPermission()
         ]);
-        
+
         const menuItems = menuRes.data?.data || [];
         setMenus(Array.isArray(menuItems) ? menuItems : []);
 
         const permItems = permRes.data?.data?.data || permRes.data?.data || [];
         setPermissions(Array.isArray(permItems) ? permItems : []);
-        
+
       } catch (err) {
         console.error("Failed to load modal data", err);
       } finally {
@@ -71,11 +71,21 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
 
     if (open) {
       fetchData();
-      // Logic to handle initial data for edit mode
+
+      // FIX: Normalize dhammaan IDs si type mismatch uusan dhicin
+      // menuIds -> string, permissionIds -> number
       if (mode === "edit" && initialData) {
+        const rawMenuIds =
+          initialData.menuIds && initialData.menuIds.length > 0
+            ? initialData.menuIds
+            : initialData.roleId
+              ? [initialData.roleId]
+              : [];
+
         setForm({
-          ...initialData,
-          menuIds: initialData.roleId ? [initialData.roleId] : []
+          roleId: String(initialData.roleId ?? ""),
+          menuIds: rawMenuIds.map(String),
+          permissionIds: (initialData.permissionIds || []).map((id) => Number(id)),
         });
       } else {
         setForm(emptyForm);
@@ -86,33 +96,41 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
     }
   }, [open, mode, initialData]);
 
-  const toggleItem = (id: string | number, field: "menuIds" | "permissionIds") => {
-    setForm(prev => {
-      const currentList = prev[field] as any[];
-      const isSelected = currentList.includes(id);
+  // FIX: toggleItem hadda wuxuu normalize gareeyaa id-ga ka hor inta uusan kaydin
+  const toggleItem = (
+    id: string | number,
+    field: "menuIds" | "permissionIds"
+  ) => {
+    setForm((prev) => {
+      const currentList = prev[field] as (string | number)[];
+
+      const exists = currentList.some(
+        (item) => String(item) === String(id)
+      );
+
       return {
         ...prev,
-        [field]: isSelected 
-          ? currentList.filter(item => item !== id) 
-          : [...currentList, id]
+        [field]: exists
+          ? currentList.filter((item) => String(item) !== String(id))
+          : [...currentList, id],
       };
     });
   };
 
-  const filteredMenus = menus.filter(m => 
+  const filteredMenus = menus.filter(m =>
     m.title.toLowerCase().includes(searchMenu.toLowerCase())
   );
 
-  const filteredPermissions = permissions.filter(p => 
+  const filteredPermissions = permissions.filter(p =>
     p.name.toLowerCase().includes(searchPermission.toLowerCase()) ||
     p.keyName.toLowerCase().includes(searchPermission.toLowerCase())
   );
 
   const submit = async () => {
-    const e: any = {};
+    const e: Partial<Record<keyof RolePermissionFormData, string>> = {};
     if (form.menuIds.length === 0) e.roleId = "Select at least one menu";
-    if (form.permissionIds.length === 0) e.permissionIds = "Select at least one permission";
-    
+    if (form.permissionIds.length === 0) e.permissionIds = "Select at least one permission" as any;
+
     if (Object.keys(e).length > 0) {
       setErrors(e);
       return;
@@ -120,8 +138,8 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
 
     setLoading(true);
     try {
-      // Map back to the expected roleId (usually the first selected in multi-scenarios)
-      await onSubmit({ ...form, roleId: form.menuIds[0].toString() });
+      // Map back to the expected roleId (first selected in multi-scenarios)
+      await onSubmit({ ...form, roleId: String(form.menuIds[0]) });
     } finally {
       setLoading(false);
     }
@@ -132,7 +150,7 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/40 backdrop-blur-none p-4">
       <div className="relative w-full max-w-2xl bg-white dark:bg-gray-950 rounded-xl shadow-xl border border-gray-200 dark:border-gray-800">
-        
+
         {/* Header */}
         <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
           <div>
@@ -148,13 +166,13 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
 
         {/* Body */}
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          
+
           {/* Menu Multi-Select */}
           <Field label={`1. Select Menus (${form.menuIds.length})`} required error={errors.roleId}>
             <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
               <div className="bg-gray-50 dark:bg-gray-800/50 px-3 py-2 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
                 <Search size={14} className="text-gray-400" />
-                <input 
+                <input
                   type="text"
                   placeholder="Filter menus..."
                   className="bg-transparent border-none outline-none text-[13px] w-full placeholder:text-gray-400 dark:text-gray-200"
@@ -164,9 +182,10 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
               </div>
               <div className="h-[250px] overflow-y-auto p-2 space-y-1 custom-scrollbar">
                 {fetching ? <LoadingState /> : filteredMenus.map((menu) => {
-                  const active = form.menuIds.includes(menu.id);
+                  {/* FIX: String comparison labada dhinacba */ }
+                  const active = form.menuIds.map(String).includes(String(menu.id));
                   return (
-                    <SelectionItem 
+                    <SelectionItem
                       key={menu.id}
                       title={menu.title}
                       active={active}
@@ -183,7 +202,7 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
             <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
               <div className="bg-gray-50 dark:bg-gray-800/50 px-3 py-2 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
                 <Search size={14} className="text-gray-400" />
-                <input 
+                <input
                   type="text"
                   placeholder="Filter permissions..."
                   className="bg-transparent border-none outline-none text-[13px] w-full placeholder:text-gray-400 dark:text-gray-200"
@@ -193,9 +212,12 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
               </div>
               <div className="h-[250px] overflow-y-auto p-2 space-y-1 custom-scrollbar">
                 {fetching ? <LoadingState /> : filteredPermissions.map((perm) => {
-                  const active = form.permissionIds.includes(perm.id);
+                  {/* FIX: Number comparison labada dhinacba */ }
+                  const active = form.permissionIds.some(
+                    (id) => String(id) === String(perm.id)
+                  );
                   return (
-                    <SelectionItem 
+                    <SelectionItem
                       key={perm.id}
                       title={perm.name}
                       subtitle={perm.keyName}
@@ -231,7 +253,7 @@ export default function MenuPermissionFormModal({ open, mode, initialData, onClo
 // Sub-components for cleaner code
 function SelectionItem({ title, subtitle, active, onClick }: { title: string; subtitle?: string; active: boolean; onClick: () => void }) {
   return (
-    <div 
+    <div
       onClick={onClick}
       className={`group flex items-center justify-between px-3 py-2 rounded-md cursor-pointer transition-all border
         ${active ? "bg-[#405189]/10 border-[#405189]/20" : "hover:bg-gray-50 dark:hover:bg-gray-800/50 border-transparent"}

@@ -130,7 +130,7 @@ export default function PlanPermissionTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
-  const canAdd = hasPermission("CREATE.PLANPERMISSIsssON");
+  const canAdd = true;
   const canEdit = hasPermission("EDIT.PLANPERMISSsssION");
   const canDelete = hasPermission("DELETE.PLANPERMISsssSION");
 

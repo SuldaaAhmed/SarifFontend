@@ -99,9 +99,9 @@ export default function SubscriptionTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
-  const canAdd = hasPermission("CREATE.SUBSCRIPTIOssN");
-  const canEdit = hasPermission("EDIT.SUBSCRIPTIssON");
-  const canDelete = hasPermission("DELETE.SUBSCRIPTssION");
+  const canAdd = hasPermission("Create.SUBSCRIPTION");
+  const canEdit = hasPermission("EDIT.SUBSCRIPTION");
+  const canDelete = hasPermission("DELETE.SUBSCRIPTION");
 
   const getPageNumbers = () => {
     const delta = 2;

@@ -108,7 +108,7 @@ export default function RolePermissionTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
-  const canAdd = hasPermission("CREATE.ROLEPERMISSION");
+  const canAdd = hasPermission("ADD.ROLEPERMISSION");
   const canDelete = hasPermission("DELETE.ROLEPERMISSION");
   const canEdit = hasPermission("EDIT.ROLEPERMISSION");
   return (
@@ -122,9 +122,9 @@ export default function RolePermissionTable() {
         </div>
 
         <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-sm overflow-hidden">
-          <div className="border-b border-gray-100 dark:border-gray-700 p-4">
-            <h3 className="text-[16px] font-semibold text-[#495057] dark:text-gray-300">Roles & Permissions Management</h3>
-          </div>
+          
+            {/* <h3 className="text-[16px] font-semibold text-[#495057] dark:text-gray-300">Roles & Permissions Management</h3> */}
+          
 
           <div className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2 w-full md:w-auto">
