@@ -111,9 +111,9 @@ export default function CurrencyTable() {
     return [...new Set(range)];
   };
 
-  const canAdd = hasPermission("CREATE.CURRENCY");
-  const canEdit = hasPermission("EDIT.CURRENCY");
-  const canDelete = hasPermission("DELETE.CURRENCY");
+  const canAdd = hasPermission("CREATE.CURRENCIE");
+  const canEdit = hasPermission("EDIT.CURRENCIE");
+  const canDelete = hasPermission("DELETE.CURRENCIE");
 
   return (
     <div className="bg-[#f3f3f9] dark:bg-gray-900 min-h-screen p-3 sm:p-4 md:p-6 font-sans">
