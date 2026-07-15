@@ -108,7 +108,7 @@ export default function RolePermissionTable() {
   const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
   const endIndex = Math.min(currentPage * itemsPerPage, totalItems);
 
-  const canAdd = hasPermission("ADD.ROLEPERMISSION");
+  const canAdd = true;
   const canDelete = hasPermission("DELETE.ROLEPERMISSION");
   const canEdit = hasPermission("EDIT.ROLEPERMISSION");
   return (
